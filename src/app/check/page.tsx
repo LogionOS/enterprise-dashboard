@@ -138,7 +138,7 @@ export default function CheckPage() {
       {/* Result */}
       {result && (
         <div className="space-y-4 animate-fade-in">
-          {/* Summary */}
+          {/* Summary + Engine Path Visualization */}
           <div className={`rounded-xl border p-5 ${
             result.action === "PASS" ? "bg-emerald-500/5 border-emerald-500/20" :
             result.action === "BLOCK" ? "bg-red-500/5 border-red-500/20" :
@@ -157,26 +157,57 @@ export default function CheckPage() {
                   <Badge variant={result.risk_level.toLowerCase() as "low" | "medium" | "high" | "critical"} size="md">
                     {result.risk_level}
                   </Badge>
-                </div>
-                <div className="text-xs text-gray-500 mt-1">
-                  Risk Score: {(result.risk_score * 100).toFixed(1)}% &middot;
-                  Path: {result.path} &middot;
-                  Intent: {result.intent}
+                  <span className="text-xs text-gray-500">
+                    Score: {(result.risk_score * 100).toFixed(1)}% &middot; Intent: {result.intent}
+                  </span>
                 </div>
               </div>
               <div className="ml-auto text-right">
-                <div className="flex items-center gap-1 text-gray-500">
-                  <Clock className="w-3.5 h-3.5" />
-                  <span className="text-xs font-mono">{result.timing.total_ms.toFixed(1)}ms</span>
-                </div>
+                <div className="text-lg font-bold font-mono text-gray-300">{result.timing.total_ms.toFixed(1)}<span className="text-xs text-gray-500">ms</span></div>
+                <div className="text-[10px] text-gray-500">end-to-end</div>
               </div>
             </div>
 
-            <div className="grid grid-cols-4 gap-3 text-center">
-              <MiniStat label="Layer 1" value={`${result.timing.layer1_ms.toFixed(1)}ms`} />
-              <MiniStat label="Layer 2" value={`${result.timing.layer2_ms.toFixed(1)}ms`} />
-              <MiniStat label="Layer 3" value={`${result.timing.layer3_ms.toFixed(1)}ms`} />
-              <MiniStat label="Retrieval" value={result.retrieval_method} />
+            {/* Engine Pipeline Visualization */}
+            <div className="bg-[#0d1117] rounded-lg border border-[#1e293b] p-4">
+              <div className="text-[10px] text-gray-500 uppercase tracking-wider mb-3 flex items-center gap-1.5">
+                <Zap className="w-3 h-3 text-indigo-400" /> Engine Pipeline — Route: <span className={`font-bold ${
+                  result.path === "fast" ? "text-emerald-400" : result.path === "medium" ? "text-amber-400" : "text-red-400"
+                }`}>{result.path.toUpperCase()}</span>
+              </div>
+              <div className="flex items-center gap-0">
+                <PipelineStep
+                  label="Layer 1 — FastCheck"
+                  detail="PII Detection + Blocklist"
+                  ms={result.timing.layer1_ms}
+                  active
+                  color="emerald"
+                />
+                <PipelineArrow />
+                <PipelineStep
+                  label="Layer 2 — RegMatch"
+                  detail={`${result.retrieval_method.toUpperCase()} · ${result.rules_matched} rules`}
+                  ms={result.timing.layer2_ms}
+                  active
+                  color={result.path === "fast" ? "emerald" : "amber"}
+                />
+                <PipelineArrow />
+                <PipelineStep
+                  label="Layer 3 — AI Judge"
+                  detail={result.ai_judge ? `${result.ai_judge.model} · Score ${result.ai_judge.score}/100` : "Skipped (fast path)"}
+                  ms={result.timing.layer3_ms}
+                  active={result.path !== "fast"}
+                  color={result.path === "deep" ? "red" : result.ai_judge ? "amber" : "default"}
+                />
+                <PipelineArrow />
+                <PipelineStep
+                  label="Decision"
+                  detail={result.action}
+                  active
+                  color={result.action === "PASS" ? "emerald" : result.action === "BLOCK" ? "red" : "amber"}
+                  isLast
+                />
+              </div>
             </div>
           </div>
 
@@ -287,6 +318,44 @@ export default function CheckPage() {
           )}
         </div>
       )}
+    </div>
+  );
+}
+
+const PIPE_COLORS = {
+  emerald: { bg: "bg-emerald-500/10", border: "border-emerald-500/20", text: "text-emerald-400", dot: "bg-emerald-400" },
+  amber: { bg: "bg-amber-500/10", border: "border-amber-500/20", text: "text-amber-400", dot: "bg-amber-400" },
+  red: { bg: "bg-red-500/10", border: "border-red-500/20", text: "text-red-400", dot: "bg-red-400" },
+  default: { bg: "bg-gray-500/5", border: "border-gray-500/15", text: "text-gray-600", dot: "bg-gray-600" },
+};
+
+function PipelineStep({ label, detail, ms, active, color, isLast }: {
+  label: string; detail: string; ms?: number; active: boolean;
+  color: keyof typeof PIPE_COLORS; isLast?: boolean;
+}) {
+  const c = active ? PIPE_COLORS[color] : PIPE_COLORS.default;
+  return (
+    <div className={`flex-1 ${isLast ? "" : ""}`}>
+      <div className={`rounded-lg border p-2.5 ${c.bg} ${c.border} ${!active ? "opacity-40" : ""}`}>
+        <div className="flex items-center gap-1.5 mb-1">
+          <span className={`w-1.5 h-1.5 rounded-full ${c.dot}`} />
+          <span className={`text-[10px] font-medium ${c.text}`}>{label}</span>
+        </div>
+        <div className="text-[10px] text-gray-500">{detail}</div>
+        {ms !== undefined && (
+          <div className={`text-xs font-mono font-bold mt-1 ${c.text}`}>{ms.toFixed(1)}ms</div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function PipelineArrow() {
+  return (
+    <div className="flex-shrink-0 px-1">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+        <path d="M4 8H12M12 8L9 5M12 8L9 11" stroke="#4b5563" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+      </svg>
     </div>
   );
 }

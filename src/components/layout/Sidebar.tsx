@@ -61,8 +61,19 @@ export default function Sidebar() {
         })}
       </nav>
 
-      <div className="p-4 border-t border-[#1e293b]">
-        <div className="text-[11px] text-gray-600 text-center">
+      <div className="p-4 border-t border-[#1e293b] space-y-3">
+        <div className="bg-[#0d1117] rounded-lg border border-[#1e293b] p-3">
+          <div className="flex items-center gap-2">
+            <div className="w-6 h-6 rounded bg-emerald-500/20 flex items-center justify-center">
+              <span className="text-[10px] font-bold text-emerald-400">D</span>
+            </div>
+            <div>
+              <div className="text-xs text-gray-300 font-medium">Demo Workspace</div>
+              <div className="text-[10px] text-gray-600">Admin &middot; ws_demo_001</div>
+            </div>
+          </div>
+        </div>
+        <div className="text-[10px] text-gray-600 text-center">
           LogionOS v3.0 &middot; Runtime Compliance
         </div>
       </div>

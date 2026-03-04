@@ -26,6 +26,7 @@ import {
 import StatsCard from "@/components/ui/StatsCard";
 import Badge from "@/components/ui/Badge";
 import { api } from "@/lib/api";
+import { seedDemoData, SEED_COUNT } from "@/lib/seed";
 import type { HealthResponse, AnalyticsResponse, AuditEntry } from "@/lib/types";
 
 const ACTION_COLORS: Record<string, string> = {
@@ -47,26 +48,38 @@ export default function OverviewPage() {
   const [analytics, setAnalytics] = useState<AnalyticsResponse | null>(null);
   const [recentEvents, setRecentEvents] = useState<AuditEntry[]>([]);
   const [loading, setLoading] = useState(true);
+  const [seeding, setSeeding] = useState(false);
+  const [seedProgress, setSeedProgress] = useState(0);
 
-  useEffect(() => {
-    async function load() {
-      try {
-        const [h, a, ev] = await Promise.all([
-          api.health(),
-          api.analytics(),
-          api.audit(10),
-        ]);
-        setHealth(h);
-        setAnalytics(a);
-        setRecentEvents(ev.entries);
-      } catch (e) {
-        console.error("Failed to load dashboard data:", e);
-      } finally {
-        setLoading(false);
-      }
+  const load = async () => {
+    setLoading(true);
+    try {
+      const [h, a, ev] = await Promise.all([
+        api.health(),
+        api.analytics(),
+        api.audit(10),
+      ]);
+      setHealth(h);
+      setAnalytics(a);
+      setRecentEvents(ev.entries);
+    } catch (e) {
+      console.error("Failed to load dashboard data:", e);
+    } finally {
+      setLoading(false);
     }
-    load();
-  }, []);
+  };
+
+  useEffect(() => { load(); }, []);
+
+  const handleSeed = async () => {
+    setSeeding(true);
+    setSeedProgress(0);
+    const baseUrl = localStorage.getItem("logionos_api_url") || "https://logionos-api.onrender.com";
+    const apiKey = localStorage.getItem("logionos_api_key") || "";
+    await seedDemoData(baseUrl, apiKey, (done) => setSeedProgress(done));
+    setSeeding(false);
+    await load();
+  };
 
   if (loading) {
     return (
@@ -145,6 +158,39 @@ export default function OverviewPage() {
           color="red"
         />
       </div>
+
+      {/* Seed Banner */}
+      {analytics && analytics.total_checks === 0 && !seeding && (
+        <div className="bg-indigo-500/5 border border-indigo-500/20 rounded-xl p-5 flex items-center justify-between">
+          <div>
+            <h3 className="text-sm font-medium text-indigo-400">Populate Demo Data</h3>
+            <p className="text-xs text-gray-500 mt-1">
+              Run {SEED_COUNT} real compliance checks to populate charts, events, and reports.
+              This simulates a live production environment for demonstration.
+            </p>
+          </div>
+          <button
+            onClick={handleSeed}
+            className="px-4 py-2 text-sm bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 transition-colors whitespace-nowrap"
+          >
+            Seed Demo Data
+          </button>
+        </div>
+      )}
+      {seeding && (
+        <div className="bg-indigo-500/5 border border-indigo-500/20 rounded-xl p-5">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-sm text-indigo-400">Seeding compliance checks...</span>
+            <span className="text-xs text-gray-400 font-mono">{seedProgress} / {SEED_COUNT}</span>
+          </div>
+          <div className="w-full bg-[#0d1117] rounded-full h-2">
+            <div
+              className="h-2 rounded-full bg-indigo-500 transition-all duration-300"
+              style={{ width: `${(seedProgress / SEED_COUNT) * 100}%` }}
+            />
+          </div>
+        </div>
+      )}
 
       {/* Jurisdiction Breakdown */}
       {eng && (
