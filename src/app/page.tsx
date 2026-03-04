@@ -1,65 +1,379 @@
-import Image from "next/image";
+"use client";
 
-export default function Home() {
+import { useEffect, useState } from "react";
+import {
+  ShieldCheck,
+  AlertTriangle,
+  Ban,
+  Activity,
+  BookOpen,
+  Clock,
+  Globe,
+} from "lucide-react";
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  Tooltip,
+  ResponsiveContainer,
+  PieChart,
+  Pie,
+  Cell,
+  AreaChart,
+  Area,
+} from "recharts";
+import StatsCard from "@/components/ui/StatsCard";
+import Badge from "@/components/ui/Badge";
+import { api } from "@/lib/api";
+import type { HealthResponse, AnalyticsResponse, AuditEntry } from "@/lib/types";
+
+const ACTION_COLORS: Record<string, string> = {
+  PASS: "#34d399",
+  FLAG: "#fbbf24",
+  BLOCK: "#f87171",
+  WARN: "#fb923c",
+};
+
+const RISK_COLORS: Record<string, string> = {
+  LOW: "#34d399",
+  MEDIUM: "#fbbf24",
+  HIGH: "#fb923c",
+  CRITICAL: "#f87171",
+};
+
+export default function OverviewPage() {
+  const [health, setHealth] = useState<HealthResponse | null>(null);
+  const [analytics, setAnalytics] = useState<AnalyticsResponse | null>(null);
+  const [recentEvents, setRecentEvents] = useState<AuditEntry[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function load() {
+      try {
+        const [h, a, ev] = await Promise.all([
+          api.health(),
+          api.analytics(),
+          api.audit(10),
+        ]);
+        setHealth(h);
+        setAnalytics(a);
+        setRecentEvents(ev.entries);
+      } catch (e) {
+        console.error("Failed to load dashboard data:", e);
+      } finally {
+        setLoading(false);
+      }
+    }
+    load();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-[60vh]">
+        <div className="flex flex-col items-center gap-3">
+          <div className="w-8 h-8 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin" />
+          <span className="text-sm text-gray-500">Loading dashboard...</span>
+        </div>
+      </div>
+    );
+  }
+
+  const eng = health?.engine;
+  const dist = analytics?.action_distribution;
+  const actionData = dist
+    ? [
+        { name: "PASS", value: dist.PASS, fill: ACTION_COLORS.PASS },
+        { name: "FLAG", value: dist.FLAG, fill: ACTION_COLORS.FLAG },
+        { name: "BLOCK", value: dist.BLOCK, fill: ACTION_COLORS.BLOCK },
+        { name: "WARN", value: dist.WARN, fill: ACTION_COLORS.WARN },
+      ].filter((d) => d.value > 0)
+    : [];
+
+  const riskData = analytics
+    ? Object.entries(analytics.risk_distribution).map(([name, value]) => ({
+        name,
+        value,
+        fill: RISK_COLORS[name] || "#6b7280",
+      }))
+    : [];
+
+  const volumeData = analytics?.daily_volume || [];
+
+  const complianceRate =
+    dist && analytics && analytics.total_checks > 0
+      ? ((dist.PASS / analytics.total_checks) * 100).toFixed(1)
+      : "—";
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
+    <div className="space-y-6 animate-fade-in">
+      <div>
+        <h1 className="text-xl font-semibold text-gray-100">Compliance Overview</h1>
+        <p className="text-sm text-gray-500 mt-1">
+          Real-time monitoring across {eng ? Object.keys(eng.rules_by_jurisdiction).length : 0} jurisdictions
+        </p>
+      </div>
+
+      {/* Stats Row */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <StatsCard
+          label="Total Rules"
+          value={eng?.total_rules.toLocaleString() ?? "—"}
+          sub={eng ? `${Object.keys(eng.rules_by_jurisdiction).length} jurisdictions` : undefined}
+          icon={BookOpen}
+          color="indigo"
         />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+        <StatsCard
+          label="Compliance Rate"
+          value={`${complianceRate}%`}
+          sub="Pass rate across all checks"
+          icon={ShieldCheck}
+          color="emerald"
+        />
+        <StatsCard
+          label="Total Checks"
+          value={analytics?.total_checks.toLocaleString() ?? "—"}
+          sub="In-memory audit entries"
+          icon={Activity}
+          color="cyan"
+        />
+        <StatsCard
+          label="Blocks / Flags"
+          value={`${dist?.BLOCK ?? 0} / ${dist?.FLAG ?? 0}`}
+          sub="Requiring attention"
+          icon={AlertTriangle}
+          color="red"
+        />
+      </div>
+
+      {/* Jurisdiction Breakdown */}
+      {eng && (
+        <div className="bg-[#111827] rounded-xl border border-[#1e293b] p-5">
+          <h2 className="text-sm font-medium text-gray-400 mb-4 flex items-center gap-2">
+            <Globe className="w-4 h-4" /> Jurisdiction Coverage
+          </h2>
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+            {Object.entries(eng.rules_by_jurisdiction).map(([j, count]) => (
+              <div
+                key={j}
+                className="bg-[#0d1117] rounded-lg border border-[#1e293b] p-3 text-center"
+              >
+                <div className="text-lg font-bold text-indigo-400">{count}</div>
+                <div className="text-xs text-gray-500 mt-0.5">{j} Rules</div>
+              </div>
+            ))}
+          </div>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+      )}
+
+      {/* Charts Row */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        {/* Action Distribution */}
+        <div className="bg-[#111827] rounded-xl border border-[#1e293b] p-5">
+          <h2 className="text-sm font-medium text-gray-400 mb-4">Action Distribution</h2>
+          {actionData.length > 0 ? (
+            <ResponsiveContainer width="100%" height={200}>
+              <PieChart>
+                <Pie
+                  data={actionData}
+                  cx="50%"
+                  cy="50%"
+                  innerRadius={50}
+                  outerRadius={80}
+                  paddingAngle={3}
+                  dataKey="value"
+                  stroke="none"
+                >
+                  {actionData.map((d) => (
+                    <Cell key={d.name} fill={d.fill} />
+                  ))}
+                </Pie>
+                <Tooltip
+                  contentStyle={{
+                    background: "#1f2937",
+                    border: "1px solid #374151",
+                    borderRadius: "8px",
+                    fontSize: "12px",
+                    color: "#e5e7eb",
+                  }}
+                />
+              </PieChart>
+            </ResponsiveContainer>
+          ) : (
+            <div className="h-[200px] flex items-center justify-center text-gray-600 text-sm">
+              No check data yet
+            </div>
+          )}
+          <div className="flex justify-center gap-4 mt-2">
+            {actionData.map((d) => (
+              <div key={d.name} className="flex items-center gap-1.5">
+                <span className="w-2 h-2 rounded-full" style={{ background: d.fill }} />
+                <span className="text-[11px] text-gray-500">
+                  {d.name} ({d.value})
+                </span>
+              </div>
+            ))}
+          </div>
         </div>
-      </main>
+
+        {/* Risk Distribution */}
+        <div className="bg-[#111827] rounded-xl border border-[#1e293b] p-5">
+          <h2 className="text-sm font-medium text-gray-400 mb-4">Risk Distribution</h2>
+          {riskData.length > 0 ? (
+            <ResponsiveContainer width="100%" height={200}>
+              <BarChart data={riskData}>
+                <XAxis dataKey="name" tick={{ fontSize: 11, fill: "#6b7280" }} axisLine={false} tickLine={false} />
+                <YAxis tick={{ fontSize: 11, fill: "#6b7280" }} axisLine={false} tickLine={false} />
+                <Tooltip
+                  contentStyle={{
+                    background: "#1f2937",
+                    border: "1px solid #374151",
+                    borderRadius: "8px",
+                    fontSize: "12px",
+                    color: "#e5e7eb",
+                  }}
+                />
+                <Bar dataKey="value" radius={[6, 6, 0, 0]}>
+                  {riskData.map((d) => (
+                    <Cell key={d.name} fill={d.fill} />
+                  ))}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          ) : (
+            <div className="h-[200px] flex items-center justify-center text-gray-600 text-sm">
+              No risk data yet
+            </div>
+          )}
+        </div>
+
+        {/* Daily Volume */}
+        <div className="bg-[#111827] rounded-xl border border-[#1e293b] p-5">
+          <h2 className="text-sm font-medium text-gray-400 mb-4">Check Volume</h2>
+          {volumeData.length > 0 ? (
+            <ResponsiveContainer width="100%" height={200}>
+              <AreaChart data={volumeData}>
+                <defs>
+                  <linearGradient id="volumeGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#818cf8" stopOpacity={0.3} />
+                    <stop offset="95%" stopColor="#818cf8" stopOpacity={0} />
+                  </linearGradient>
+                </defs>
+                <XAxis
+                  dataKey="date"
+                  tick={{ fontSize: 10, fill: "#6b7280" }}
+                  axisLine={false}
+                  tickLine={false}
+                  tickFormatter={(v: string) => v.slice(5)}
+                />
+                <YAxis tick={{ fontSize: 11, fill: "#6b7280" }} axisLine={false} tickLine={false} />
+                <Tooltip
+                  contentStyle={{
+                    background: "#1f2937",
+                    border: "1px solid #374151",
+                    borderRadius: "8px",
+                    fontSize: "12px",
+                    color: "#e5e7eb",
+                  }}
+                />
+                <Area
+                  type="monotone"
+                  dataKey="count"
+                  stroke="#818cf8"
+                  strokeWidth={2}
+                  fill="url(#volumeGrad)"
+                />
+              </AreaChart>
+            </ResponsiveContainer>
+          ) : (
+            <div className="h-[200px] flex items-center justify-center text-gray-600 text-sm">
+              No volume data yet
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Recent Events */}
+      <div className="bg-[#111827] rounded-xl border border-[#1e293b] p-5">
+        <h2 className="text-sm font-medium text-gray-400 mb-4 flex items-center gap-2">
+          <Clock className="w-4 h-4" /> Recent Events
+        </h2>
+        {recentEvents.length > 0 ? (
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="text-gray-500 text-xs border-b border-[#1e293b]">
+                  <th className="text-left py-2 font-medium">Timestamp</th>
+                  <th className="text-left py-2 font-medium">Request ID</th>
+                  <th className="text-left py-2 font-medium">Jurisdiction</th>
+                  <th className="text-left py-2 font-medium">Action</th>
+                  <th className="text-left py-2 font-medium">Risk</th>
+                  <th className="text-right py-2 font-medium">Rules</th>
+                  <th className="text-right py-2 font-medium">Latency</th>
+                </tr>
+              </thead>
+              <tbody>
+                {recentEvents.map((ev) => (
+                  <tr
+                    key={ev.request_id}
+                    className="border-b border-[#1e293b]/50 hover:bg-white/[0.02] transition-colors"
+                  >
+                    <td className="py-2.5 text-gray-400 font-mono text-xs">
+                      {new Date(ev.timestamp).toLocaleTimeString()}
+                    </td>
+                    <td className="py-2.5 text-gray-300 font-mono text-xs">
+                      {ev.request_id.slice(0, 12)}...
+                    </td>
+                    <td className="py-2.5">
+                      <Badge variant="default" size="sm">{ev.jurisdiction}</Badge>
+                    </td>
+                    <td className="py-2.5">
+                      <Badge variant={ev.action.toLowerCase() as "pass" | "flag" | "block" | "warn"}>
+                        {ev.action}
+                      </Badge>
+                    </td>
+                    <td className="py-2.5">
+                      <Badge
+                        variant={ev.risk_level.toLowerCase() as "low" | "medium" | "high" | "critical"}
+                      >
+                        {ev.risk_level}
+                      </Badge>
+                    </td>
+                    <td className="py-2.5 text-right text-gray-400">{ev.rules_triggered}</td>
+                    <td className="py-2.5 text-right text-gray-500 font-mono text-xs">
+                      {ev.latency_ms.toFixed(1)}ms
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ) : (
+          <div className="text-center text-gray-600 py-8">
+            No events recorded yet. Run a compliance check to see data here.
+          </div>
+        )}
+      </div>
+
+      {/* Engine Info */}
+      {eng && (
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          {[
+            { label: "PII Patterns", value: eng.pii_patterns },
+            { label: "Blocklist Rules", value: eng.blocklist_rules },
+            { label: "Custom Policies", value: `${eng.custom_policies_active} / ${eng.custom_policies}` },
+            { label: "Retrieval Method", value: eng.retrieval_method.toUpperCase() },
+          ].map((item) => (
+            <div
+              key={item.label}
+              className="bg-[#111827] rounded-lg border border-[#1e293b] p-3 text-center"
+            >
+              <div className="text-xs text-gray-500">{item.label}</div>
+              <div className="text-sm font-medium text-gray-300 mt-1">{item.value}</div>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
