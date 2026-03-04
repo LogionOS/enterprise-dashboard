@@ -1,23 +1,30 @@
 "use client";
 
-import { Bell, Search } from "lucide-react";
+import { Bell, Search, LogOut } from "lucide-react";
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { logout } from "@/lib/auth";
 
 export default function Header() {
+  const router = useRouter();
   const [connected, setConnected] = useState<boolean | null>(null);
 
   useEffect(() => {
     const baseUrl =
       localStorage.getItem("logionos_api_url") ||
       "https://logionos-api.onrender.com";
+    const key = localStorage.getItem("logionos_api_key");
     fetch(`${baseUrl}/v1/health`, {
-      headers: localStorage.getItem("logionos_api_key")
-        ? { Authorization: `Bearer ${localStorage.getItem("logionos_api_key")}` }
-        : {},
+      headers: key ? { Authorization: `Bearer ${key}` } : {},
     })
       .then((r) => setConnected(r.ok))
       .catch(() => setConnected(false));
   }, []);
+
+  const handleLogout = () => {
+    logout();
+    router.push("/login");
+  };
 
   return (
     <header className="h-16 bg-[#0d1117]/80 backdrop-blur-md border-b border-[#1e293b] flex items-center justify-between px-6 sticky top-0 z-30">
@@ -51,6 +58,13 @@ export default function Header() {
         </div>
         <button className="relative p-2 rounded-lg hover:bg-white/5 transition-colors">
           <Bell className="w-4 h-4 text-gray-400" />
+        </button>
+        <button
+          onClick={handleLogout}
+          className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs text-gray-500 hover:text-gray-300 hover:bg-white/5 transition-colors"
+          title="Sign out"
+        >
+          <LogOut className="w-3.5 h-3.5" />
         </button>
       </div>
     </header>
