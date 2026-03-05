@@ -10,10 +10,12 @@ import {
   FileBarChart,
   Settings,
   Zap,
+  Rocket,
 } from "lucide-react";
 
 const NAV = [
   { href: "/", label: "Overview", icon: LayoutDashboard },
+  { href: "/quickstart", label: "Quick Start", icon: Rocket },
   { href: "/check", label: "Live Check", icon: Zap },
   { href: "/events", label: "Events", icon: Activity },
   { href: "/rules", label: "Regulations", icon: BookOpen },
@@ -74,7 +76,7 @@ export default function Sidebar() {
           </div>
         </div>
         <div className="text-[10px] text-gray-600 text-center">
-          LogionOS v3.0 &middot; Runtime Compliance
+          LogionOS v3.1 &middot; Runtime Compliance
         </div>
       </div>
     </aside>
