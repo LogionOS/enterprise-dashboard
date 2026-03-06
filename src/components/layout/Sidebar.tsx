@@ -30,8 +30,14 @@ export default function Sidebar() {
   return (
     <aside className="fixed left-0 top-0 h-screen w-60 bg-[#0d1117] border-r border-[#1e293b] flex flex-col z-40">
       <div className="h-16 flex items-center gap-3 px-5 border-b border-[#1e293b]">
-        <div className="w-8 h-8 rounded-lg bg-indigo-500/20 flex items-center justify-center">
-          <Zap className="w-4 h-4 text-indigo-400" />
+        <div className="w-8 h-8 rounded-lg flex items-center justify-center overflow-hidden">
+          <svg width="32" height="32" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect width="200" height="200" rx="24" fill="#000"/>
+            <path d="M100 60 C100 60, 75 70, 65 100 C55 130, 70 155, 100 155" stroke="white" strokeWidth="4" strokeLinecap="round" fill="none"/>
+            <path d="M140 100 C140 100, 130 75, 100 65 C70 55, 45 70, 45 100" stroke="white" strokeWidth="4" strokeLinecap="round" fill="none"/>
+            <path d="M100 140 C100 140, 125 130, 135 100 C145 70, 130 45, 100 45" stroke="white" strokeWidth="4" strokeLinecap="round" fill="none"/>
+            <path d="M60 100 C60 100, 70 125, 100 135 C130 145, 155 130, 155 100" stroke="white" strokeWidth="4" strokeLinecap="round" fill="none"/>
+          </svg>
         </div>
         <div>
           <span className="text-[15px] font-semibold text-gray-100 tracking-tight">
