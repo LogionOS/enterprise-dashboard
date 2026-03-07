@@ -5,7 +5,10 @@ const DEFAULT_URL = "https://logionos-api.onrender.com";
 
 export function isAuthenticated(): boolean {
   if (typeof window === "undefined") return false;
-  return localStorage.getItem(SESSION_KEY) === "authenticated";
+  return (
+    localStorage.getItem(SESSION_KEY) === "authenticated" &&
+    !!localStorage.getItem(API_KEY_KEY)
+  );
 }
 
 export function getApiConfig() {
@@ -43,4 +46,6 @@ export async function login(apiUrl: string, apiKey: string): Promise<{ ok: boole
 
 export function logout() {
   localStorage.removeItem(SESSION_KEY);
+  localStorage.removeItem(API_KEY_KEY);
+  localStorage.removeItem(API_URL_KEY);
 }
