@@ -16,6 +16,8 @@ interface PolicyForm {
   severity: number;
   response_message: string;
   enabled: boolean;
+  denied_resource_tags: string;
+  allowed_agent_roles: string;
 }
 
 const EMPTY_FORM: PolicyForm = {
@@ -28,6 +30,8 @@ const EMPTY_FORM: PolicyForm = {
   severity: 0.5,
   response_message: "",
   enabled: true,
+  denied_resource_tags: "",
+  allowed_agent_roles: "",
 };
 
 export default function PoliciesPage() {
@@ -69,24 +73,32 @@ export default function PoliciesPage() {
       severity: p.severity,
       response_message: p.response_message,
       enabled: p.enabled,
+      denied_resource_tags: (p.denied_resource_tags || []).join(", "),
+      allowed_agent_roles: (p.allowed_agent_roles || []).join(", "),
     });
     setEditingId(p.id);
     setShowModal(true);
   };
 
+  const isResourceAccess = form.category === "resource_access";
+
   const handleSave = async () => {
     setSaving(true);
-    const payload = {
+    const payload: Record<string, unknown> = {
       name: form.name,
       description: form.description,
       category: form.category,
-      triggers: form.triggers.split(",").map((t) => t.trim()).filter(Boolean),
+      triggers: isResourceAccess ? [] : form.triggers.split(",").map((t) => t.trim()).filter(Boolean),
       conditions: form.conditions,
-      action: form.action,
+      action: isResourceAccess ? "BLOCK" : form.action,
       severity: form.severity,
       response_message: form.response_message,
       enabled: form.enabled,
     };
+    if (isResourceAccess) {
+      payload.denied_resource_tags = form.denied_resource_tags.split(",").map((t) => t.trim()).filter(Boolean);
+      payload.allowed_agent_roles = form.allowed_agent_roles.split(",").map((t) => t.trim()).filter(Boolean);
+    }
     try {
       if (editingId) {
         await api.updatePolicy(editingId, payload);
@@ -166,16 +178,39 @@ export default function PoliciesPage() {
                   {p.enabled ? "Active" : "Disabled"}
                 </span>
               </div>
-              <div className="flex flex-wrap gap-1">
-                {p.triggers.slice(0, 6).map((t) => (
-                  <span key={t} className="px-1.5 py-0.5 bg-white/5 text-gray-500 text-[10px] rounded">
-                    {t}
-                  </span>
-                ))}
-                {p.triggers.length > 6 && (
-                  <span className="px-1.5 py-0.5 text-gray-600 text-[10px]">+{p.triggers.length - 6} more</span>
-                )}
-              </div>
+              {p.category === "resource_access" && p.denied_resource_tags?.length > 0 ? (
+                <div className="space-y-1.5">
+                  <div className="flex flex-wrap gap-1">
+                    <span className="text-[10px] text-red-400 font-medium mr-1">Denied:</span>
+                    {p.denied_resource_tags.map((t) => (
+                      <span key={t} className="px-1.5 py-0.5 bg-red-500/10 text-red-400 text-[10px] rounded border border-red-500/20">
+                        {t}
+                      </span>
+                    ))}
+                  </div>
+                  {p.allowed_agent_roles?.length > 0 && (
+                    <div className="flex flex-wrap gap-1">
+                      <span className="text-[10px] text-emerald-400 font-medium mr-1">Exempt:</span>
+                      {p.allowed_agent_roles.map((r) => (
+                        <span key={r} className="px-1.5 py-0.5 bg-emerald-500/10 text-emerald-400 text-[10px] rounded border border-emerald-500/20">
+                          {r}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="flex flex-wrap gap-1">
+                  {p.triggers.slice(0, 6).map((t) => (
+                    <span key={t} className="px-1.5 py-0.5 bg-white/5 text-gray-500 text-[10px] rounded">
+                      {t}
+                    </span>
+                  ))}
+                  {p.triggers.length > 6 && (
+                    <span className="px-1.5 py-0.5 text-gray-600 text-[10px]">+{p.triggers.length - 6} more</span>
+                  )}
+                </div>
+              )}
               <div className="flex items-center justify-between mt-3 pt-3 border-t border-[#1e293b]">
                 <span className="text-[10px] text-gray-600 font-mono">{p.id}</span>
                 <span className="text-[10px] text-gray-600">Severity: {p.severity.toFixed(1)}</span>
@@ -234,8 +269,8 @@ export default function PoliciesPage() {
                     onChange={(e) => setForm({ ...form, category: e.target.value })}
                     className="w-full bg-[#0d1117] border border-[#1e293b] rounded-lg px-3 py-2 text-sm text-gray-300 outline-none"
                   >
-                    {["general", "data", "content", "access", "security", "custom"].map((c) => (
-                      <option key={c} value={c}>{c}</option>
+                    {["general", "data", "content", "access", "security", "resource_access", "custom"].map((c) => (
+                      <option key={c} value={c}>{c === "resource_access" ? "resource_access (AI Data Control)" : c}</option>
                     ))}
                   </select>
                 </Field>
@@ -251,14 +286,35 @@ export default function PoliciesPage() {
                   </select>
                 </Field>
               </div>
-              <Field label="Triggers (comma-separated)" required>
-                <input
-                  value={form.triggers}
-                  onChange={(e) => setForm({ ...form, triggers: e.target.value })}
-                  placeholder="competitor, rival product, vs our product"
-                  className="w-full bg-[#0d1117] border border-[#1e293b] rounded-lg px-3 py-2 text-sm text-gray-300 outline-none focus:border-indigo-500/50"
-                />
-              </Field>
+              {isResourceAccess ? (
+                <>
+                  <Field label="Denied Resource Tags (comma-separated)" required>
+                    <input
+                      value={form.denied_resource_tags}
+                      onChange={(e) => setForm({ ...form, denied_resource_tags: e.target.value })}
+                      placeholder="trading-db, customer-pii, board-minutes"
+                      className="w-full bg-[#0d1117] border border-[#1e293b] rounded-lg px-3 py-2 text-sm text-gray-300 outline-none focus:border-red-500/50"
+                    />
+                  </Field>
+                  <Field label="Allowed Agent Roles (comma-separated)">
+                    <input
+                      value={form.allowed_agent_roles}
+                      onChange={(e) => setForm({ ...form, allowed_agent_roles: e.target.value })}
+                      placeholder="internal-analyst, compliance-officer"
+                      className="w-full bg-[#0d1117] border border-[#1e293b] rounded-lg px-3 py-2 text-sm text-gray-300 outline-none focus:border-emerald-500/50"
+                    />
+                  </Field>
+                </>
+              ) : (
+                <Field label="Triggers (comma-separated)" required>
+                  <input
+                    value={form.triggers}
+                    onChange={(e) => setForm({ ...form, triggers: e.target.value })}
+                    placeholder="competitor, rival product, vs our product"
+                    className="w-full bg-[#0d1117] border border-[#1e293b] rounded-lg px-3 py-2 text-sm text-gray-300 outline-none focus:border-indigo-500/50"
+                  />
+                </Field>
+              )}
               <div className="grid grid-cols-2 gap-3">
                 <Field label={`Severity (${form.severity.toFixed(1)})`}>
                   <input
@@ -303,7 +359,7 @@ export default function PoliciesPage() {
               </button>
               <button
                 onClick={handleSave}
-                disabled={saving || !form.name || !form.triggers}
+                disabled={saving || !form.name || (!isResourceAccess && !form.triggers) || (isResourceAccess && !form.denied_resource_tags)}
                 className="px-4 py-2 text-sm bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
                 {saving ? "Saving..." : editingId ? "Update" : "Create"}
