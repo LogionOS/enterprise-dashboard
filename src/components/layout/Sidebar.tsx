@@ -78,8 +78,8 @@ export default function Sidebar() {
               <span className="text-[10px] font-bold text-emerald-400">D</span>
             </div>
             <div>
-              <div className="text-xs text-gray-300 font-medium">Demo Workspace</div>
-              <div className="text-[10px] text-gray-600">Admin &middot; ws_demo_001</div>
+              <div className="text-xs text-gray-300 font-medium">Workspace</div>
+              <div className="text-[10px] text-gray-600">Admin &middot; Connected</div>
             </div>
           </div>
         </div>

@@ -53,7 +53,7 @@ export default function EventsPage() {
         type: "LogionOS Evidence Pack",
         version: "1.0",
         generated_at: new Date().toISOString(),
-        workspace: "ws_demo_001",
+        workspace: localStorage.getItem("logionos_api_url")?.replace(/https?:\/\//, "").split("/")[0] || "logionos",
         export_format: "structured_json",
       },
       event: {
@@ -72,12 +72,12 @@ export default function EventsPage() {
       audit_trail: {
         immutable_hash: ev.query_hash,
         decision_timestamp: ev.timestamp,
-        engine_version: "3.0",
-        pipeline: "FastCheck → RegulationMatch → AuditLog",
-        retention_policy: "7 years (financial compliance)",
+        engine_version: "2.0.0",
+        pipeline: "FastCheck → RegulationMatch → AI Judge → AuditLog",
+        retention_policy: "Configurable (see DEPLOYMENT.md)",
       },
       compliance_attestation: {
-        system: "LogionOS Runtime Compliance Engine v3.0",
+        system: "LogionOS Runtime Compliance Engine v2.0",
         jurisdictions_checked: [ev.jurisdiction],
         total_regulations_loaded: "2000+",
         decision_basis: "Automated multi-layer compliance check (TF-IDF + Embedding + AI Judge)",
@@ -116,7 +116,7 @@ td:first-child{font-weight:600;width:200px;background:#f9fafb;color:#4b5563}
 </head>
 <body>
 <h1>LogionOS Evidence Pack</h1>
-<p style="color:#6b7280;font-size:13px">Generated: ${new Date().toISOString()} | Workspace: ws_demo_001</p>
+<p style="color:#6b7280;font-size:13px">Generated: ${new Date().toISOString()}</p>
 
 <h2>Event Details</h2>
 <table>
@@ -138,15 +138,15 @@ td:first-child{font-weight:600;width:200px;background:#f9fafb;color:#4b5563}
 <h2>Audit Trail</h2>
 <table>
 <tr><td>Immutable Hash</td><td><code>${ev.query_hash}</code></td></tr>
-<tr><td>Engine Version</td><td>LogionOS v3.0</td></tr>
+<tr><td>Engine Version</td><td>LogionOS v2.0</td></tr>
 <tr><td>Pipeline</td><td>FastCheck → RegulationMatch → AI Judge → AuditLog</td></tr>
-<tr><td>Retention Policy</td><td>7 years (financial compliance)</td></tr>
+<tr><td>Retention Policy</td><td>Configurable (see DEPLOYMENT.md)</td></tr>
 <tr><td>Human Review Required</td><td>${ev.action === "BLOCK" || ev.action === "FLAG" ? "Yes" : "No"}</td></tr>
 </table>
 
 <h2>Compliance Attestation</h2>
 <table>
-<tr><td>System</td><td>LogionOS Runtime Compliance Engine v3.0</td></tr>
+<tr><td>System</td><td>LogionOS Runtime Compliance Engine v2.0</td></tr>
 <tr><td>Jurisdictions</td><td>${ev.jurisdiction} (2000+ regulations loaded)</td></tr>
 <tr><td>Decision Basis</td><td>Multi-layer automated check (PII Detection → Regulation Matching → AI Judge)</td></tr>
 </table>
@@ -347,9 +347,9 @@ For audit verification, contact compliance@logionos.com
 
               {/* Audit Trail */}
               <Section title="Audit Trail">
-                <InfoRow label="Engine Version" value="LogionOS v3.0" />
+                <InfoRow label="Engine Version" value="LogionOS v2.0" />
                 <InfoRow label="Pipeline" value="FastCheck → RegMatch → AI Judge → Audit" />
-                <InfoRow label="Retention Policy" value="7 years (financial compliance)" />
+                <InfoRow label="Retention Policy" value="Configurable (see DEPLOYMENT.md)" />
                 <InfoRow label="Immutable Hash" value={selected.query_hash.slice(0, 24) + "..."} mono />
               </Section>
 
@@ -363,6 +363,27 @@ For audit verification, contact compliance@logionos.com
                   className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 text-sm text-gray-400 border border-[#1e293b] rounded-lg hover:bg-white/5 transition-colors">
                   <Download className="w-4 h-4" /> Export (JSON)
                 </button>
+              </div>
+
+              {/* Feedback */}
+              <div className="pt-3 border-t border-[#1e293b]">
+                <div className="text-xs font-medium text-gray-400 mb-2">Feedback on this check</div>
+                <div className="flex gap-2 flex-wrap">
+                  {(["accurate", "false_positive", "too_strict", "too_lenient"] as const).map((fb) => (
+                    <button
+                      key={fb}
+                      onClick={async () => {
+                        try {
+                          await api.submitFeedback({ request_id: selected.request_id, feedback: fb });
+                          alert(`Feedback "${fb}" submitted`);
+                        } catch { alert("Failed to submit feedback"); }
+                      }}
+                      className="px-3 py-1.5 text-xs rounded-md border border-[#1e293b] text-gray-400 hover:bg-white/5 hover:text-gray-200 transition-colors capitalize"
+                    >
+                      {fb.replace("_", " ")}
+                    </button>
+                  ))}
+                </div>
               </div>
 
               <div className="text-[10px] text-gray-600 text-center pt-2">

@@ -50,6 +50,7 @@ export default function OverviewPage() {
   const [loading, setLoading] = useState(true);
   const [seeding, setSeeding] = useState(false);
   const [seedProgress, setSeedProgress] = useState(0);
+  const [auditIntegrity, setAuditIntegrity] = useState<{ valid: boolean; total: number; verified: number } | null>(null);
 
   const load = async () => {
     setLoading(true);
@@ -62,6 +63,7 @@ export default function OverviewPage() {
       setHealth(h);
       setAnalytics(a);
       setRecentEvents(ev.entries);
+      api.auditVerify().then(setAuditIntegrity).catch(() => {});
     } catch (e) {
       console.error("Failed to load dashboard data:", e);
     } finally {
@@ -403,7 +405,7 @@ export default function OverviewPage() {
 
       {/* Engine Info */}
       {eng && (
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
           {[
             { label: "PII Patterns", value: eng.pii_patterns },
             { label: "Blocklist Rules", value: eng.blocklist_rules },
@@ -418,6 +420,16 @@ export default function OverviewPage() {
               <div className="text-sm font-medium text-gray-300 mt-1">{item.value}</div>
             </div>
           ))}
+          <div className={`bg-[#111827] rounded-lg border p-3 text-center ${auditIntegrity ? (auditIntegrity.valid ? "border-emerald-500/30" : "border-red-500/30") : "border-[#1e293b]"}`}>
+            <div className="text-xs text-gray-500">Audit Integrity</div>
+            {auditIntegrity ? (
+              <div className={`text-sm font-medium mt-1 ${auditIntegrity.valid ? "text-emerald-400" : "text-red-400"}`}>
+                {auditIntegrity.valid ? "✓" : "✗"} {auditIntegrity.verified}/{auditIntegrity.total}
+              </div>
+            ) : (
+              <div className="text-sm font-medium text-gray-500 mt-1">—</div>
+            )}
+          </div>
         </div>
       )}
     </div>

@@ -51,7 +51,14 @@ export default function ReportsPage() {
   const generate = async () => {
     setLoading(true);
     try {
-      const res = await api.generateReport(period) as unknown as ExtendedReport;
+      const [res, fb] = await Promise.all([
+        api.generateReport(period) as unknown as ExtendedReport,
+        api.feedbackStats().catch(() => null),
+      ]);
+      if (fb) {
+        res.false_positive_rate = fb.false_positive_rate;
+        res.feedback_total = fb.total;
+      }
       setReport(res);
     } catch (e) {
       console.error("Failed to generate report:", e);
@@ -281,6 +288,27 @@ export default function ReportsPage() {
               </div>
             )}
           </div>
+
+          {/* Feedback Quality Stats */}
+          {report.false_positive_rate !== undefined && !report.trend && (
+            <div className="bg-[#111827] rounded-xl border border-[#1e293b] p-5">
+              <h3 className="text-sm font-medium text-gray-400 mb-3">Feedback Quality</h3>
+              <div className="flex items-center gap-6">
+                <div>
+                  <div className="text-xs text-gray-500 mb-1">False Positive Rate</div>
+                  <div className="text-xl font-bold text-purple-400">
+                    {(report.false_positive_rate * 100).toFixed(1)}%
+                  </div>
+                </div>
+                {report.feedback_total !== undefined && (
+                  <div>
+                    <div className="text-xs text-gray-500 mb-1">Feedback Entries</div>
+                    <div className="text-xl font-bold text-gray-300">{report.feedback_total}</div>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
 
           {/* Recommendations */}
           {report.recommendations.length > 0 && (

@@ -256,6 +256,32 @@ export default function IncidentsPage() {
               </div>
             )}
 
+            {(selectedIncident.status === "open" || selectedIncident.status === "investigating") && (
+              <div className="bg-[#0d1117] border border-[#1e293b] rounded-lg p-3 space-y-2">
+                <div className="text-xs text-gray-500 font-medium">Manual Override</div>
+                <input
+                  id="override-reason"
+                  type="text"
+                  placeholder="Override reason (required)..."
+                  className="w-full bg-[#111827] border border-[#1e293b] rounded px-3 py-1.5 text-sm text-gray-200"
+                />
+                <button
+                  onClick={async () => {
+                    const reason = (document.getElementById("override-reason") as HTMLInputElement)?.value;
+                    if (!reason?.trim()) { alert("Please provide an override reason"); return; }
+                    try {
+                      await api.overrideIncident(selectedIncident.id, { reason, status: "false_positive" });
+                      setSelectedIncident(null);
+                      loadIncidents();
+                    } catch { alert("Override failed"); }
+                  }}
+                  className="w-full py-1.5 bg-purple-600 hover:bg-purple-500 text-white rounded-lg text-sm font-medium"
+                >
+                  Override as False Positive
+                </button>
+              </div>
+            )}
+
             <div className="flex gap-3 pt-2">
               <button
                 onClick={handleSave}

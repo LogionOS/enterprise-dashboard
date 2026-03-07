@@ -106,4 +106,9 @@ export const api = {
   feedbackStats: () => request<{ total: number; breakdown: Record<string, number>; false_positive_rate: number }>("/v1/feedback/stats"),
 
   auditVerify: () => request<{ valid: boolean; total: number; verified: number; errors: unknown[] }>("/v1/audit/verify"),
+
+  setKillSwitch: (mode: string) =>
+    request<{ status: string; current_mode: string }>("/v1/admin/kill-switch", { method: "PUT", body: JSON.stringify({ mode }) }),
+
+  getKillSwitch: () => request<{ mode: string }>("/v1/admin/kill-switch"),
 };

@@ -30,7 +30,7 @@ export default function SettingsPage() {
   useEffect(() => {
     setApiUrl(localStorage.getItem("logionos_api_url") || "https://logionos-api.onrender.com");
     setApiKey(localStorage.getItem("logionos_api_key") || "");
-    setKillMode((localStorage.getItem("logionos_kill_mode") as KillMode) || "normal");
+    api.getKillSwitch().then((r) => setKillMode(r.mode as KillMode)).catch(() => {});
     loadWebhooks();
   }, []);
 
@@ -88,9 +88,13 @@ export default function SettingsPage() {
     }
   };
 
-  const setKillModeAndSave = (mode: KillMode) => {
-    setKillMode(mode);
-    localStorage.setItem("logionos_kill_mode", mode);
+  const setKillModeAndSave = async (mode: KillMode) => {
+    try {
+      await api.setKillSwitch(mode);
+      setKillMode(mode);
+    } catch {
+      alert("Failed to set kill switch — check API connection");
+    }
   };
 
   const handleSeed = async () => {
@@ -120,8 +124,8 @@ export default function SettingsPage() {
               <Building2 className="w-4 h-4 text-indigo-400" />
               <span className="text-xs text-gray-500">Organization</span>
             </div>
-            <div className="text-sm font-medium text-gray-200">LogionOS Demo</div>
-            <div className="text-[10px] text-gray-600 mt-0.5 font-mono">ws_demo_001</div>
+            <div className="text-sm font-medium text-gray-200">LogionOS Workspace</div>
+            <div className="text-[10px] text-gray-600 mt-0.5 font-mono">{localStorage.getItem("logionos_api_url")?.replace(/https?:\/\//, "").split("/")[0] || "localhost"}</div>
           </div>
           <div className="bg-[#0d1117] rounded-lg border border-[#1e293b] p-4">
             <div className="flex items-center gap-2 mb-2">
@@ -136,8 +140,8 @@ export default function SettingsPage() {
               <Key className="w-4 h-4 text-amber-400" />
               <span className="text-xs text-gray-500">API Keys</span>
             </div>
-            <div className="text-sm font-medium text-gray-200">4 Active</div>
-            <div className="text-[10px] text-gray-600 mt-0.5">admin(1) dev(2) auditor(1)</div>
+            <div className="text-sm font-medium text-gray-200">Configured in env</div>
+            <div className="text-[10px] text-gray-600 mt-0.5">LOGIONOS_API_KEYS</div>
           </div>
         </div>
       </div>
@@ -378,7 +382,7 @@ export default function SettingsPage() {
           <div className="text-gray-500">Dashboard Version</div>
           <div className="text-gray-300">1.0.0</div>
           <div className="text-gray-500">Engine Version</div>
-          <div className="text-gray-300">3.0 (Runtime Compliance)</div>
+          <div className="text-gray-300">2.0.0 (Runtime Compliance)</div>
           <div className="text-gray-500">Default API Endpoint</div>
           <div className="text-gray-300 font-mono">logionos-api.onrender.com</div>
           <div className="text-gray-500">Supported Jurisdictions</div>
