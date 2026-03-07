@@ -18,6 +18,8 @@ interface PolicyForm {
   enabled: boolean;
   denied_resource_tags: string;
   allowed_agent_roles: string;
+  scope_type: string;
+  scope_values: string;
 }
 
 const EMPTY_FORM: PolicyForm = {
@@ -32,6 +34,8 @@ const EMPTY_FORM: PolicyForm = {
   enabled: true,
   denied_resource_tags: "",
   allowed_agent_roles: "",
+  scope_type: "global",
+  scope_values: "",
 };
 
 export default function PoliciesPage() {
@@ -75,6 +79,8 @@ export default function PoliciesPage() {
       enabled: p.enabled,
       denied_resource_tags: (p.denied_resource_tags || []).join(", "),
       allowed_agent_roles: (p.allowed_agent_roles || []).join(", "),
+      scope_type: p.scope_type || "global",
+      scope_values: (p.scope_values || []).join(", "),
     });
     setEditingId(p.id);
     setShowModal(true);
@@ -99,6 +105,8 @@ export default function PoliciesPage() {
       payload.denied_resource_tags = form.denied_resource_tags.split(",").map((t) => t.trim()).filter(Boolean);
       payload.allowed_agent_roles = form.allowed_agent_roles.split(",").map((t) => t.trim()).filter(Boolean);
     }
+    payload.scope_type = form.scope_type;
+    payload.scope_values = form.scope_values.split(",").map((t) => t.trim()).filter(Boolean);
     try {
       if (editingId) {
         await api.updatePolicy(editingId, payload);
@@ -348,6 +356,31 @@ export default function PoliciesPage() {
                   className="w-full bg-[#0d1117] border border-[#1e293b] rounded-lg px-3 py-2 text-sm text-gray-300 outline-none focus:border-indigo-500/50"
                 />
               </Field>
+
+              <div className="grid grid-cols-2 gap-4">
+                <Field label="Scope">
+                  <select
+                    value={form.scope_type}
+                    onChange={(e) => setForm({ ...form, scope_type: e.target.value })}
+                    className="w-full bg-[#0d1117] border border-[#1e293b] rounded-lg px-3 py-2 text-sm text-gray-300 outline-none focus:border-indigo-500/50"
+                  >
+                    <option value="global">Global (all departments)</option>
+                    <option value="department">Department-specific</option>
+                    <option value="team">Team-specific</option>
+                    <option value="role">Role-specific</option>
+                  </select>
+                </Field>
+                {form.scope_type !== "global" && (
+                  <Field label="Scope Values (comma-separated)">
+                    <input
+                      value={form.scope_values}
+                      onChange={(e) => setForm({ ...form, scope_values: e.target.value })}
+                      placeholder="e.g. trading, wealth-management"
+                      className="w-full bg-[#0d1117] border border-[#1e293b] rounded-lg px-3 py-2 text-sm text-gray-300 outline-none focus:border-indigo-500/50"
+                    />
+                  </Field>
+                )}
+              </div>
             </div>
 
             <div className="flex justify-end gap-3 mt-6">

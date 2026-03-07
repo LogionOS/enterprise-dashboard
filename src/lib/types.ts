@@ -141,6 +141,8 @@ export interface PolicyResponse {
   updated_at: string;
   denied_resource_tags: string[];
   allowed_agent_roles: string[];
+  scope_type: string;
+  scope_values: string[];
 }
 
 export interface PolicyListResponse {

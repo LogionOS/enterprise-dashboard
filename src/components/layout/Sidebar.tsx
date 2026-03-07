@@ -11,6 +11,7 @@ import {
   Settings,
   Zap,
   Rocket,
+  AlertTriangle,
 } from "lucide-react";
 
 const NAV = [
@@ -18,6 +19,7 @@ const NAV = [
   { href: "/quickstart", label: "Quick Start", icon: Rocket },
   { href: "/check", label: "Live Check", icon: Zap },
   { href: "/events", label: "Events", icon: Activity },
+  { href: "/incidents", label: "Incidents", icon: AlertTriangle },
   { href: "/rules", label: "Regulations", icon: BookOpen },
   { href: "/policies", label: "Policies", icon: Shield },
   { href: "/reports", label: "Reports", icon: FileBarChart },

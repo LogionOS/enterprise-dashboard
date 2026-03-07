@@ -82,4 +82,28 @@ export const api = {
       method: "POST",
       body: JSON.stringify({ period, limit }),
     }),
+
+  incidents: (params?: { status?: string; limit?: number }) => {
+    const qs = new URLSearchParams();
+    if (params?.status) qs.set("status", params.status);
+    if (params?.limit) qs.set("limit", String(params.limit));
+    const q = qs.toString();
+    return request<{ total: number; incidents: Record<string, unknown>[] }>(`/v1/incidents${q ? `?${q}` : ""}`);
+  },
+
+  getIncident: (id: string) =>
+    request<Record<string, unknown>>(`/v1/incidents/${id}`),
+
+  updateIncident: (id: string, data: Record<string, unknown>) =>
+    request<Record<string, unknown>>(`/v1/incidents/${id}`, { method: "PUT", body: JSON.stringify(data) }),
+
+  overrideIncident: (id: string, data: { reason: string; status?: string }) =>
+    request<Record<string, unknown>>(`/v1/incidents/${id}/override`, { method: "POST", body: JSON.stringify(data) }),
+
+  submitFeedback: (data: { request_id: string; feedback: string; comment?: string }) =>
+    request<{ status: string }>("/v1/feedback", { method: "POST", body: JSON.stringify(data) }),
+
+  feedbackStats: () => request<{ total: number; breakdown: Record<string, number>; false_positive_rate: number }>("/v1/feedback/stats"),
+
+  auditVerify: () => request<{ valid: boolean; total: number; verified: number; errors: unknown[] }>("/v1/audit/verify"),
 };

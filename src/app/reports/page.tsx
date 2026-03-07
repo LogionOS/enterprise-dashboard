@@ -19,6 +19,7 @@ const PERIODS = [
   { value: "last_24h", label: "Last 24 Hours" },
   { value: "last_7d", label: "Last 7 Days" },
   { value: "last_30d", label: "Last 30 Days" },
+  { value: "last_quarter", label: "Last Quarter" },
   { value: "all", label: "All Time" },
 ];
 
@@ -29,15 +30,28 @@ const ACTION_COLORS: Record<string, string> = {
   WARN: "#fb923c",
 };
 
+interface ExtendedReport extends ComplianceReportResponse {
+  trend?: {
+    total_change_pct: number;
+    violation_change_pct: number;
+    previous_total: number;
+    previous_violations: number;
+  };
+  top_departments?: { department: string; count: number }[];
+  top_violating_users?: { user_id: string; department: string; count: number }[];
+  false_positive_rate?: number;
+  feedback_total?: number;
+}
+
 export default function ReportsPage() {
   const [period, setPeriod] = useState("last_24h");
-  const [report, setReport] = useState<ComplianceReportResponse | null>(null);
+  const [report, setReport] = useState<ExtendedReport | null>(null);
   const [loading, setLoading] = useState(false);
 
   const generate = async () => {
     setLoading(true);
     try {
-      const res = await api.generateReport(period);
+      const res = await api.generateReport(period) as unknown as ExtendedReport;
       setReport(res);
     } catch (e) {
       console.error("Failed to generate report:", e);
@@ -202,6 +216,70 @@ export default function ReportsPage() {
                 ))}
               </div>
             </div>
+          </div>
+
+          {/* Trend comparison + Department breakdown */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {report.trend && (
+              <div className="bg-[#111827] rounded-xl border border-[#1e293b] p-5">
+                <h3 className="text-sm font-medium text-gray-400 mb-4">Period Trend</h3>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <div className="text-xs text-gray-500 mb-1">Volume Change</div>
+                    <div className={`text-xl font-bold ${report.trend.total_change_pct > 0 ? "text-amber-400" : "text-emerald-400"}`}>
+                      {report.trend.total_change_pct > 0 ? "+" : ""}{report.trend.total_change_pct}%
+                    </div>
+                    <div className="text-xs text-gray-600 mt-1">
+                      vs prev: {report.trend.previous_total} checks
+                    </div>
+                  </div>
+                  <div>
+                    <div className="text-xs text-gray-500 mb-1">Violation Change</div>
+                    <div className={`text-xl font-bold ${report.trend.violation_change_pct > 0 ? "text-red-400" : "text-emerald-400"}`}>
+                      {report.trend.violation_change_pct > 0 ? "+" : ""}{report.trend.violation_change_pct}%
+                    </div>
+                    <div className="text-xs text-gray-600 mt-1">
+                      vs prev: {report.trend.previous_violations} violations
+                    </div>
+                  </div>
+                </div>
+                {report.false_positive_rate !== undefined && (
+                  <div className="mt-4 pt-3 border-t border-[#1e293b]">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs text-gray-500">False Positive Rate</span>
+                      <span className="text-sm font-medium text-purple-400">
+                        {(report.false_positive_rate * 100).toFixed(1)}%
+                      </span>
+                    </div>
+                    {report.feedback_total !== undefined && (
+                      <div className="text-xs text-gray-600 mt-0.5">{report.feedback_total} feedback entries</div>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {report.top_departments && report.top_departments.length > 0 && (
+              <div className="bg-[#111827] rounded-xl border border-[#1e293b] p-5">
+                <h3 className="text-sm font-medium text-gray-400 mb-4">Top Violating Departments</h3>
+                <div className="space-y-2">
+                  {report.top_departments.map((d, i) => (
+                    <div key={i} className="flex items-center justify-between">
+                      <span className="text-sm text-gray-300">{d.department}</span>
+                      <div className="flex items-center gap-3 flex-1 ml-4">
+                        <div className="flex-1 bg-[#0d1117] rounded-full h-2">
+                          <div
+                            className="h-2 rounded-full bg-red-500/60"
+                            style={{ width: `${Math.min(100, (d.count / (report.top_departments?.[0]?.count || 1)) * 100)}%` }}
+                          />
+                        </div>
+                        <span className="text-sm text-gray-400 font-mono w-8 text-right">{d.count}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Recommendations */}
