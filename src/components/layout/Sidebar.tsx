@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useEffect, useState } from "react";
 import {
   LayoutDashboard,
   Activity,
@@ -12,9 +13,11 @@ import {
   Zap,
   Rocket,
   AlertTriangle,
+  Key,
 } from "lucide-react";
+import { getRole } from "@/lib/auth";
 
-const NAV = [
+const NAV_BASE = [
   { href: "/", label: "Overview", icon: LayoutDashboard },
   { href: "/quickstart", label: "Quick Start", icon: Rocket },
   { href: "/check", label: "Live Check", icon: Zap },
@@ -26,8 +29,19 @@ const NAV = [
   { href: "/settings", label: "Settings", icon: Settings },
 ];
 
+const ADMIN_NAV = [
+  { href: "/api-keys", label: "API Keys", icon: Key },
+];
+
 export default function Sidebar() {
   const pathname = usePathname();
+  const [role, setRole] = useState("viewer");
+
+  useEffect(() => {
+    setRole(getRole());
+  }, []);
+
+  const NAV = role === "admin" ? [...NAV_BASE, ...ADMIN_NAV] : NAV_BASE;
 
   return (
     <aside className="fixed left-0 top-0 h-screen w-60 bg-[#0d1117] border-r border-[#1e293b] flex flex-col z-40">
@@ -74,17 +88,23 @@ export default function Sidebar() {
       <div className="p-4 border-t border-[#1e293b] space-y-3">
         <div className="bg-[#0d1117] rounded-lg border border-[#1e293b] p-3">
           <div className="flex items-center gap-2">
-            <div className="w-6 h-6 rounded bg-emerald-500/20 flex items-center justify-center">
-              <span className="text-[10px] font-bold text-emerald-400">D</span>
+            <div className={`w-6 h-6 rounded flex items-center justify-center ${
+              role === "admin" ? "bg-indigo-500/20" : "bg-emerald-500/20"
+            }`}>
+              <span className={`text-[10px] font-bold ${
+                role === "admin" ? "text-indigo-400" : "text-emerald-400"
+              }`}>
+                {role === "admin" ? "A" : role[0]?.toUpperCase() || "U"}
+              </span>
             </div>
             <div>
-              <div className="text-xs text-gray-300 font-medium">Workspace</div>
-              <div className="text-[10px] text-gray-600">Admin &middot; Connected</div>
+              <div className="text-xs text-gray-300 font-medium capitalize">{role}</div>
+              <div className="text-[10px] text-gray-600">Authenticated</div>
             </div>
           </div>
         </div>
         <div className="text-[10px] text-gray-600 text-center">
-          LogionOS v3.1 &middot; Runtime Compliance
+          LogionOS &middot; Runtime Compliance
         </div>
       </div>
     </aside>

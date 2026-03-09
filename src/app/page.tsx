@@ -51,9 +51,11 @@ export default function OverviewPage() {
   const [seeding, setSeeding] = useState(false);
   const [seedProgress, setSeedProgress] = useState(0);
   const [auditIntegrity, setAuditIntegrity] = useState<{ valid: boolean; total: number; verified: number } | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   const load = async () => {
     setLoading(true);
+    setError(null);
     try {
       const [h, a, ev] = await Promise.all([
         api.health(),
@@ -65,7 +67,8 @@ export default function OverviewPage() {
       setRecentEvents(ev.entries);
       api.auditVerify().then(setAuditIntegrity).catch(() => {});
     } catch (e) {
-      console.error("Failed to load dashboard data:", e);
+      const msg = e instanceof Error ? e.message : "Unknown error";
+      setError(`Failed to load dashboard data: ${msg}`);
     } finally {
       setLoading(false);
     }
@@ -128,6 +131,21 @@ export default function OverviewPage() {
           Real-time monitoring across {eng ? Object.keys(eng.rules_by_jurisdiction).length : 0} jurisdictions
         </p>
       </div>
+
+      {error && (
+        <div className="flex items-center justify-between bg-red-500/10 border border-red-500/20 rounded-xl p-4">
+          <div className="flex items-center gap-3">
+            <AlertTriangle className="w-5 h-5 text-red-400 flex-shrink-0" />
+            <span className="text-sm text-red-400">{error}</span>
+          </div>
+          <button
+            onClick={load}
+            className="px-3 py-1.5 text-xs bg-red-500/20 text-red-400 rounded-lg hover:bg-red-500/30 transition-colors"
+          >
+            Retry
+          </button>
+        </div>
+      )}
 
       {/* Stats Row */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">

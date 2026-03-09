@@ -1,6 +1,7 @@
 const SESSION_KEY = "logionos_session";
 const API_KEY_KEY = "logionos_api_key";
 const API_URL_KEY = "logionos_api_url";
+const ROLE_KEY = "logionos_role";
 const DEFAULT_URL = "https://logionos-api.onrender.com";
 
 export function isAuthenticated(): boolean {
@@ -11,6 +12,15 @@ export function isAuthenticated(): boolean {
   );
 }
 
+export function getRole(): string {
+  if (typeof window === "undefined") return "viewer";
+  return localStorage.getItem(ROLE_KEY) || "viewer";
+}
+
+export function isAdmin(): boolean {
+  return getRole() === "admin";
+}
+
 export function getApiConfig() {
   return {
     baseUrl: localStorage.getItem(API_URL_KEY) || DEFAULT_URL,
@@ -18,27 +28,35 @@ export function getApiConfig() {
   };
 }
 
-export async function login(apiUrl: string, apiKey: string): Promise<{ ok: boolean; error?: string; version?: string; rules?: number }> {
+export async function login(apiUrl: string, apiKey: string): Promise<{ ok: boolean; error?: string; version?: string; rules?: number; role?: string }> {
   try {
     const headers: Record<string, string> = {};
     if (apiKey) headers["Authorization"] = `Bearer ${apiKey}`;
 
-    const res = await fetch(`${apiUrl}/v1/health`, { headers });
-    if (!res.ok) {
-      if (res.status === 401) return { ok: false, error: "Invalid API key" };
-      return { ok: false, error: `API returned ${res.status}` };
+    const authRes = await fetch(`${apiUrl}/v1/auth/me`, { headers });
+    if (!authRes.ok) {
+      if (authRes.status === 401 || authRes.status === 403)
+        return { ok: false, error: "Invalid API key" };
+      return { ok: false, error: `Authentication failed (${authRes.status})` };
+    }
+    const authData = await authRes.json();
+    const role: string = authData.role || "viewer";
+
+    const healthRes = await fetch(`${apiUrl}/v1/health`, { headers });
+    let version = "";
+    let rules = 0;
+    if (healthRes.ok) {
+      const hData = await healthRes.json();
+      version = hData.version || "";
+      rules = hData.engine?.total_rules || 0;
     }
 
-    const data = await res.json();
     localStorage.setItem(API_URL_KEY, apiUrl);
     localStorage.setItem(API_KEY_KEY, apiKey);
+    localStorage.setItem(ROLE_KEY, role);
     localStorage.setItem(SESSION_KEY, "authenticated");
 
-    return {
-      ok: true,
-      version: data.version,
-      rules: data.engine?.total_rules,
-    };
+    return { ok: true, version, rules, role };
   } catch (e) {
     return { ok: false, error: `Connection failed: ${e}` };
   }
@@ -48,4 +66,5 @@ export function logout() {
   localStorage.removeItem(SESSION_KEY);
   localStorage.removeItem(API_KEY_KEY);
   localStorage.removeItem(API_URL_KEY);
+  localStorage.removeItem(ROLE_KEY);
 }

@@ -11,7 +11,7 @@ export default function LoginPage() {
   const [apiKey, setApiKey] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [success, setSuccess] = useState<{ version: string; rules: number } | null>(null);
+  const [success, setSuccess] = useState<{ version: string; rules: number; role: string } | null>(null);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -21,7 +21,7 @@ export default function LoginPage() {
 
     const result = await login(apiUrl, apiKey);
     if (result.ok) {
-      setSuccess({ version: result.version || "", rules: result.rules || 0 });
+      setSuccess({ version: result.version || "", rules: result.rules || 0, role: result.role || "viewer" });
       setTimeout(() => router.push("/"), 800);
     } else {
       setError(result.error || "Login failed");
@@ -63,7 +63,7 @@ export default function LoginPage() {
               placeholder="Enter your API key"
             />
             <p className="text-[10px] text-gray-600 mt-1.5">
-              Leave blank for dev mode (no authentication required)
+              Bearer token authentication — contact your admin for access
             </p>
           </div>
 
@@ -78,7 +78,7 @@ export default function LoginPage() {
             <div className="flex items-center gap-2 bg-emerald-500/10 border border-emerald-500/20 rounded-lg p-3">
               <CheckCircle className="w-4 h-4 text-emerald-400 flex-shrink-0" />
               <span className="text-xs text-emerald-400">
-                Connected — v{success.version} · {success.rules.toLocaleString()} rules loaded
+                Connected — v{success.version} · {success.rules.toLocaleString()} rules · {success.role}
               </span>
             </div>
           )}

@@ -12,6 +12,7 @@ import {
   Cell,
 } from "recharts";
 import Badge from "@/components/ui/Badge";
+import { toast } from "@/components/ui/Toast";
 import { api } from "@/lib/api";
 import type { ComplianceReportResponse } from "@/lib/types";
 
@@ -61,7 +62,7 @@ export default function ReportsPage() {
       }
       setReport(res);
     } catch (e) {
-      console.error("Failed to generate report:", e);
+      toast(`Failed to generate report: ${e instanceof Error ? e.message : e}`);
     } finally {
       setLoading(false);
     }

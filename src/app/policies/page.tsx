@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { Shield, Plus, Pencil, Trash2, X, Check } from "lucide-react";
 import Badge from "@/components/ui/Badge";
+import { toast } from "@/components/ui/Toast";
 import { api } from "@/lib/api";
 import type { PolicyResponse } from "@/lib/types";
 
@@ -45,14 +46,17 @@ export default function PoliciesPage() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState<PolicyForm>(EMPTY_FORM);
   const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const load = async () => {
     setLoading(true);
+    setError(null);
     try {
       const res = await api.policies();
       setPolicies(res.policies);
     } catch (e) {
-      console.error("Failed to load policies:", e);
+      const msg = e instanceof Error ? e.message : String(e);
+      setError(`Failed to load policies: ${msg}`);
     } finally {
       setLoading(false);
     }
@@ -116,7 +120,7 @@ export default function PoliciesPage() {
       setShowModal(false);
       await load();
     } catch (e) {
-      console.error("Failed to save policy:", e);
+      toast(`Failed to save policy: ${e instanceof Error ? e.message : e}`);
     } finally {
       setSaving(false);
     }
@@ -128,7 +132,7 @@ export default function PoliciesPage() {
       await api.deletePolicy(id);
       await load();
     } catch (e) {
-      console.error("Failed to delete policy:", e);
+      toast(`Failed to delete policy: ${e instanceof Error ? e.message : e}`);
     }
   };
 
@@ -150,6 +154,13 @@ export default function PoliciesPage() {
           <Plus className="w-4 h-4" /> Create Policy
         </button>
       </div>
+
+      {error && (
+        <div className="flex items-center justify-between bg-red-500/10 border border-red-500/20 rounded-xl p-4">
+          <span className="text-sm text-red-400">{error}</span>
+          <button onClick={load} className="px-3 py-1.5 text-xs bg-red-500/20 text-red-400 rounded-lg hover:bg-red-500/30 transition-colors">Retry</button>
+        </div>
+      )}
 
       {/* Policies Grid */}
       {loading ? (

@@ -4,6 +4,7 @@ import { usePathname } from "next/navigation";
 import AuthGuard from "./AuthGuard";
 import Sidebar from "./Sidebar";
 import Header from "./Header";
+import { ToastContainer } from "@/components/ui/Toast";
 
 export default function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -11,6 +12,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
 
   return (
     <AuthGuard>
+      <ToastContainer />
       {isLogin ? (
         children
       ) : (

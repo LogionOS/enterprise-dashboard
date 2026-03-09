@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { Activity, Download, RefreshCw, X, FileText, Clock, Shield } from "lucide-react";
 import Badge from "@/components/ui/Badge";
+import { toast } from "@/components/ui/Toast";
 import { api } from "@/lib/api";
 import type { AuditEntry } from "@/lib/types";
 
@@ -12,14 +13,17 @@ export default function EventsPage() {
   const [filter, setFilter] = useState<string>("ALL");
   const [limit, setLimit] = useState(100);
   const [selected, setSelected] = useState<AuditEntry | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   const load = async () => {
     setLoading(true);
+    setError(null);
     try {
       const res = await api.audit(limit);
       setEntries(res.entries);
     } catch (e) {
-      console.error("Failed to load events:", e);
+      const msg = e instanceof Error ? e.message : String(e);
+      setError(`Failed to load events: ${msg}`);
     } finally {
       setLoading(false);
     }
@@ -30,12 +34,8 @@ export default function EventsPage() {
   const filtered = filter === "ALL" ? entries : entries.filter((e) => e.action === filter);
 
   const handleExport = async (format: "json" | "csv") => {
-    const { baseUrl, apiKey } = getConfig();
-    const headers: Record<string, string> = {};
-    if (apiKey) headers["Authorization"] = `Bearer ${apiKey}`;
     try {
-      const res = await fetch(`${baseUrl}/v1/audit/export?format=${format}&limit=500`, { headers });
-      const blob = await res.blob();
+      const blob = await api.auditExport(format);
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
@@ -43,7 +43,7 @@ export default function EventsPage() {
       a.click();
       URL.revokeObjectURL(url);
     } catch (e) {
-      console.error("Export failed:", e);
+      toast(`Export failed: ${e instanceof Error ? e.message : e}`);
     }
   };
 
@@ -191,6 +191,13 @@ For audit verification, contact compliance@logionos.com
           </button>
         </div>
       </div>
+
+      {error && (
+        <div className="flex items-center justify-between bg-red-500/10 border border-red-500/20 rounded-xl p-4">
+          <span className="text-sm text-red-400">{error}</span>
+          <button onClick={load} className="px-3 py-1.5 text-xs bg-red-500/20 text-red-400 rounded-lg hover:bg-red-500/30 transition-colors">Retry</button>
+        </div>
+      )}
 
       {/* Filters */}
       <div className="flex items-center gap-2">
@@ -375,8 +382,8 @@ For audit verification, contact compliance@logionos.com
                       onClick={async () => {
                         try {
                           await api.submitFeedback({ request_id: selected.request_id, feedback: fb });
-                          alert(`Feedback "${fb}" submitted`);
-                        } catch { alert("Failed to submit feedback"); }
+                          toast(`Feedback "${fb}" submitted`, "success");
+                        } catch { toast("Failed to submit feedback"); }
                       }}
                       className="px-3 py-1.5 text-xs rounded-md border border-[#1e293b] text-gray-400 hover:bg-white/5 hover:text-gray-200 transition-colors capitalize"
                     >
@@ -417,8 +424,3 @@ function InfoRow({ label, value, mono }: { label: string; value: string; mono?: 
   );
 }
 
-function getConfig() {
-  const baseUrl = localStorage.getItem("logionos_api_url") || "https://logionos-api.onrender.com";
-  const apiKey = localStorage.getItem("logionos_api_key") || "";
-  return { baseUrl, apiKey };
-}

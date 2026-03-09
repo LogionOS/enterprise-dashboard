@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
+import { toast } from "@/components/ui/Toast";
 import { api } from "@/lib/api";
 
 interface Incident {
@@ -77,7 +78,7 @@ export default function IncidentsPage() {
       setSelectedIncident(null);
       loadIncidents();
     } catch (err) {
-      alert(`Failed: ${err}`);
+      toast(`Failed to update incident: ${err instanceof Error ? err.message : err}`);
     }
     setSaving(false);
   };
@@ -268,12 +269,12 @@ export default function IncidentsPage() {
                 <button
                   onClick={async () => {
                     const reason = (document.getElementById("override-reason") as HTMLInputElement)?.value;
-                    if (!reason?.trim()) { alert("Please provide an override reason"); return; }
+                    if (!reason?.trim()) { toast("Please provide an override reason", "warning"); return; }
                     try {
                       await api.overrideIncident(selectedIncident.id, { reason, status: "false_positive" });
                       setSelectedIncident(null);
                       loadIncidents();
-                    } catch { alert("Override failed"); }
+                    } catch { toast("Override failed"); }
                   }}
                   className="w-full py-1.5 bg-purple-600 hover:bg-purple-500 text-white rounded-lg text-sm font-medium"
                 >

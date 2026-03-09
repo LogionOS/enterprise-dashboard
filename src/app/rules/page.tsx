@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { BookOpen, Search, ChevronRight, X } from "lucide-react";
 import Badge from "@/components/ui/Badge";
+import { toast } from "@/components/ui/Toast";
 import { api } from "@/lib/api";
 import type { RuleSummary, RuleDetail } from "@/lib/types";
 
@@ -24,7 +25,7 @@ export default function RulesPage() {
         const res = await api.rules(j);
         setRules(res.rules);
       } catch (e) {
-        console.error("Failed to load rules:", e);
+        toast(`Failed to load rules: ${e instanceof Error ? e.message : e}`);
       } finally {
         setLoading(false);
       }
@@ -47,7 +48,7 @@ export default function RulesPage() {
       const detail = await api.ruleDetail(id);
       setSelected(detail);
     } catch (e) {
-      console.error("Failed to load rule detail:", e);
+      toast(`Failed to load rule detail: ${e instanceof Error ? e.message : e}`);
     } finally {
       setDetailLoading(false);
     }

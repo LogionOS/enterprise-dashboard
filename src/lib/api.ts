@@ -107,8 +107,32 @@ export const api = {
 
   auditVerify: () => request<{ valid: boolean; total: number; verified: number; errors: unknown[] }>("/v1/audit/verify"),
 
+  auditExport: async (format: "json" | "csv", limit = 500, dateFrom?: string, dateTo?: string): Promise<Blob> => {
+    const { baseUrl, apiKey } = getConfig();
+    const params = new URLSearchParams({ format, limit: String(limit) });
+    if (dateFrom) params.set("date_from", dateFrom);
+    if (dateTo) params.set("date_to", dateTo);
+    const headers: Record<string, string> = {};
+    if (apiKey) headers["Authorization"] = `Bearer ${apiKey}`;
+    const res = await fetch(`${baseUrl}/v1/audit/export?${params}`, { headers });
+    if (!res.ok) throw new Error(`Export failed: ${res.status}`);
+    return res.blob();
+  },
+
   setKillSwitch: (mode: string) =>
     request<{ status: string; current_mode: string }>("/v1/admin/kill-switch", { method: "PUT", body: JSON.stringify({ mode }) }),
 
   getKillSwitch: () => request<{ mode: string }>("/v1/admin/kill-switch"),
+
+  createApiKey: (role: string, label: string) =>
+    request<{ status: string; api_key: string; key_prefix: string; role: string; label: string }>("/v1/admin/api-keys", {
+      method: "POST",
+      body: JSON.stringify({ role, label }),
+    }),
+
+  listApiKeys: () =>
+    request<{ total: number; keys: Array<{ id: number; key_prefix: string; role: string; label: string; is_active: number; created_at: string; revoked_at: string | null }> }>("/v1/admin/api-keys"),
+
+  revokeApiKey: (keyId: number) =>
+    request<{ status: string; key_id: number }>(`/v1/admin/api-keys/${keyId}`, { method: "DELETE" }),
 };

@@ -7,6 +7,7 @@ import {
   AlertOctagon, Building2, User, Database,
 } from "lucide-react";
 import Badge from "@/components/ui/Badge";
+import { toast } from "@/components/ui/Toast";
 import { api } from "@/lib/api";
 import { seedDemoData, SEED_COUNT } from "@/lib/seed";
 import type { WebhookResponse, HealthResponse } from "@/lib/types";
@@ -30,6 +31,7 @@ export default function SettingsPage() {
   useEffect(() => {
     setApiUrl(localStorage.getItem("logionos_api_url") || "https://logionos-api.onrender.com");
     setApiKey(localStorage.getItem("logionos_api_key") || "");
+    api.health().then(setHealth).catch(() => {});
     api.getKillSwitch().then((r) => setKillMode(r.mode as KillMode)).catch(() => {});
     loadWebhooks();
   }, []);
@@ -75,7 +77,7 @@ export default function SettingsPage() {
       setNewWebhookUrl("");
       await loadWebhooks();
     } catch (e) {
-      console.error("Failed to create webhook:", e);
+      toast(`Failed to create webhook: ${e instanceof Error ? e.message : e}`);
     }
   };
 
@@ -84,7 +86,7 @@ export default function SettingsPage() {
       await api.deleteWebhook(id);
       await loadWebhooks();
     } catch (e) {
-      console.error("Failed to delete webhook:", e);
+      toast(`Failed to delete webhook: ${e instanceof Error ? e.message : e}`);
     }
   };
 
@@ -93,7 +95,7 @@ export default function SettingsPage() {
       await api.setKillSwitch(mode);
       setKillMode(mode);
     } catch {
-      alert("Failed to set kill switch — check API connection");
+      toast("Failed to set kill switch — check API connection");
     }
   };
 
@@ -132,8 +134,8 @@ export default function SettingsPage() {
               <User className="w-4 h-4 text-emerald-400" />
               <span className="text-xs text-gray-500">Your Role</span>
             </div>
-            <div className="text-sm font-medium text-gray-200">Admin</div>
-            <div className="text-[10px] text-gray-600 mt-0.5">Full access to all endpoints</div>
+            <div className="text-sm font-medium text-gray-200">{health?.engine ? "Admin" : "—"}</div>
+            <div className="text-[10px] text-gray-600 mt-0.5">{health?.engine ? "Full access to all endpoints" : "Test connection to detect"}</div>
           </div>
           <div className="bg-[#0d1117] rounded-lg border border-[#1e293b] p-4">
             <div className="flex items-center gap-2 mb-2">
@@ -277,7 +279,7 @@ export default function SettingsPage() {
             <div>
               <div className="text-sm text-emerald-400 font-medium">Connected</div>
               <div className="text-xs text-gray-400 mt-1">
-                Version: {health.version} &middot; Rules: {health.engine.total_rules} &middot; Status: {health.status}
+                Version: {health.version} &middot; Rules: {health.engine?.total_rules ?? "—"} &middot; Status: {health.status}
               </div>
             </div>
           </div>
@@ -382,7 +384,7 @@ export default function SettingsPage() {
           <div className="text-gray-500">Dashboard Version</div>
           <div className="text-gray-300">1.0.0</div>
           <div className="text-gray-500">Engine Version</div>
-          <div className="text-gray-300">2.0.0 (Runtime Compliance)</div>
+          <div className="text-gray-300">{health?.version ?? "—"} (Runtime Compliance)</div>
           <div className="text-gray-500">Default API Endpoint</div>
           <div className="text-gray-300 font-mono">logionos-api.onrender.com</div>
           <div className="text-gray-500">Supported Jurisdictions</div>
