@@ -30,7 +30,8 @@ export default function SettingsPage() {
 
   useEffect(() => {
     setApiUrl(localStorage.getItem("logionos_api_url") || "https://logionos-api.onrender.com");
-    setApiKey(localStorage.getItem("logionos_api_key") || "");
+    const storedKey = localStorage.getItem("logionos_api_key") || "";
+    setApiKey(storedKey ? storedKey.slice(0, 8) + "••••••••" : "");
     api.health().then(setHealth).catch(() => {});
     api.getKillSwitch().then((r) => setKillMode(r.mode as KillMode)).catch(() => {});
     loadWebhooks();
@@ -253,9 +254,13 @@ export default function SettingsPage() {
             type="password"
             value={apiKey}
             onChange={(e) => setApiKey(e.target.value)}
-            placeholder="Enter your API key (Bearer token)"
+            placeholder="Enter new API key to replace current"
             className="w-full bg-[#0d1117] border border-[#1e293b] rounded-lg px-3 py-2 text-sm text-gray-300 font-mono outline-none focus:border-indigo-500/50"
+            readOnly
           />
+          <p className="text-[10px] text-gray-600 mt-1">
+            To change API key, log out and log in with a new key.
+          </p>
         </div>
         <div className="flex items-center gap-3">
           <button

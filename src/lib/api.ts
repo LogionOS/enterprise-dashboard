@@ -32,8 +32,12 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   }
   const res = await fetch(`${baseUrl}${path}`, { ...options, headers });
   if (!res.ok) {
-    const body = await res.text();
-    throw new Error(`API ${res.status}: ${body}`);
+    if (res.status === 401 || res.status === 403) {
+      const { forceLogoutOnAuthError } = await import("./auth");
+      forceLogoutOnAuthError();
+      throw new Error("Session expired. Please log in again.");
+    }
+    throw new Error(`Request failed (${res.status}). Please try again.`);
   }
   return res.json();
 }
