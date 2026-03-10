@@ -6,7 +6,7 @@ import Badge from "@/components/ui/Badge";
 import { api } from "@/lib/api";
 import type { CheckResponse } from "@/lib/types";
 
-const JURISDICTIONS = ["US", "EU", "JP", "UK", "SG", "ALL"];
+const JURISDICTIONS = ["US", "EU", "JP", "UK", "SG", "HK", "ALL"];
 
 const EXAMPLES = [
   { label: "PII Exposure", query: "Use customer SSN 123-45-6789 to train the credit scoring model", jurisdiction: "US" },

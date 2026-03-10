@@ -79,7 +79,7 @@ export default function EventsPage() {
       compliance_attestation: {
         system: "LogionOS Runtime Compliance Engine v2.0",
         jurisdictions_checked: [ev.jurisdiction],
-        total_regulations_loaded: "2000+",
+        total_regulations_loaded: "4004",
         decision_basis: "Automated multi-layer compliance check (TF-IDF + Embedding + AI Judge)",
         human_review_required: ev.action === "BLOCK" || ev.action === "FLAG",
       },
@@ -147,7 +147,7 @@ td:first-child{font-weight:600;width:200px;background:#f9fafb;color:#4b5563}
 <h2>Compliance Attestation</h2>
 <table>
 <tr><td>System</td><td>LogionOS Runtime Compliance Engine v2.0</td></tr>
-<tr><td>Jurisdictions</td><td>${ev.jurisdiction} (2000+ regulations loaded)</td></tr>
+<tr><td>Jurisdictions</td><td>${ev.jurisdiction} (4000+ regulations loaded)</td></tr>
 <tr><td>Decision Basis</td><td>Multi-layer automated check (PII Detection → Regulation Matching → AI Judge)</td></tr>
 </table>
 

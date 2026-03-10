@@ -7,7 +7,7 @@ import { toast } from "@/components/ui/Toast";
 import { api } from "@/lib/api";
 import type { RuleSummary, RuleDetail } from "@/lib/types";
 
-const JURISDICTIONS = ["ALL", "US", "EU", "JP", "UK", "SG"];
+const JURISDICTIONS = ["ALL", "US", "EU", "JP", "UK", "SG", "HK"];
 
 export default function RulesPage() {
   const [rules, setRules] = useState<RuleSummary[]>([]);

@@ -393,7 +393,7 @@ export default function SettingsPage() {
           <div className="text-gray-500">Default API Endpoint</div>
           <div className="text-gray-300 font-mono">logionos-api.onrender.com</div>
           <div className="text-gray-500">Supported Jurisdictions</div>
-          <div className="text-gray-300">US, EU, JP, UK, SG</div>
+          <div className="text-gray-300">US, EU, JP, UK, SG, HK</div>
           <div className="text-gray-500">RBAC Roles</div>
           <div className="text-gray-300">Admin, Developer, Auditor, Viewer</div>
           <div className="text-gray-500">Architecture</div>

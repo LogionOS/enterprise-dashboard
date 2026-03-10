@@ -26,7 +26,7 @@ const STEPS = [
     desc: "Submit a query and see the real-time 3-layer compliance pipeline in action.",
     action: { label: "Open Live Check", href: "/check" },
     details: [
-      "Go to Live Check page and select a jurisdiction (US/EU/JP/UK/SG)",
+      "Go to Live Check page and select a jurisdiction (US/EU/JP/UK/SG/HK)",
       "Enter a query or paste an AI prompt to analyze",
       "Watch the pipeline: FastCheck → RegMatch → AI Judge → Decision",
       "Results show: PASS / FLAG / BLOCK with matched regulations",
@@ -46,11 +46,11 @@ const STEPS = [
   },
   {
     id: "rules",
-    title: "Explore 2,000+ Regulations",
-    desc: "Browse the full regulation database covering 5 jurisdictions.",
+    title: "Explore 4,000+ Regulations",
+    desc: "Browse the full regulation database covering 6 jurisdictions.",
     action: { label: "Browse Rules", href: "/rules" },
     details: [
-      "Filter by jurisdiction: US, EU, JP, UK, SG",
+      "Filter by jurisdiction: US, EU, JP, UK, SG, HK",
       "Search by keyword to find specific regulations",
       "Click any rule to see full text, triggers, and severity",
       "Rules cover: finance, healthcare, privacy, AI safety, and more",
