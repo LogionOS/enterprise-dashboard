@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { FileBarChart, Download, Play } from "lucide-react";
 import {
   BarChart,
@@ -14,7 +14,7 @@ import {
 import Badge from "@/components/ui/Badge";
 import { toast } from "@/components/ui/Toast";
 import { api } from "@/lib/api";
-import type { ComplianceReportResponse } from "@/lib/types";
+import type { ComplianceReportResponse, ReportTemplate } from "@/lib/types";
 
 const PERIODS = [
   { value: "last_24h", label: "Last 24 Hours" },
@@ -48,6 +48,14 @@ export default function ReportsPage() {
   const [period, setPeriod] = useState("last_24h");
   const [report, setReport] = useState<ExtendedReport | null>(null);
   const [loading, setLoading] = useState(false);
+  const [templates, setTemplates] = useState<ReportTemplate[]>([]);
+  const [selectedTemplate, setSelectedTemplate] = useState<string>("");
+
+  useEffect(() => {
+    api.reportTemplates()
+      .then((data) => setTemplates(data.templates))
+      .catch(() => {});
+  }, []);
 
   const generate = async () => {
     setLoading(true);
@@ -120,6 +128,21 @@ export default function ReportsPage() {
               ))}
             </div>
           </div>
+          {templates.length > 0 && (
+            <div>
+              <label className="text-xs text-gray-500 mb-1.5 block">Report Template</label>
+              <select
+                value={selectedTemplate}
+                onChange={(e) => setSelectedTemplate(e.target.value)}
+                className="bg-[#0d1117] border border-[#1e293b] rounded-lg px-3 py-1.5 text-xs text-gray-300 min-w-[200px]"
+              >
+                <option value="">Standard Report</option>
+                {templates.map((t) => (
+                  <option key={t.id} value={t.id}>{t.name}</option>
+                ))}
+              </select>
+            </div>
+          )}
           <div className="sm:ml-auto flex items-center gap-2">
             <button
               onClick={generate}
@@ -173,6 +196,32 @@ export default function ReportsPage() {
               <MetricBlock label="Pass" value={report.action_summary.PASS} color="text-emerald-400" />
             </div>
           </div>
+
+          {/* Template Structure */}
+          {selectedTemplate && templates.find((t) => t.id === selectedTemplate) && (
+            <div className="bg-[#111827] rounded-xl border border-indigo-500/20 p-5">
+              <h3 className="text-sm font-medium text-indigo-400 mb-3">
+                Template: {templates.find((t) => t.id === selectedTemplate)?.name}
+              </h3>
+              <p className="text-xs text-gray-500 mb-3">
+                {templates.find((t) => t.id === selectedTemplate)?.description}
+              </p>
+              <div className="space-y-2">
+                {templates
+                  .find((t) => t.id === selectedTemplate)
+                  ?.sections.map((section, idx) => (
+                    <div key={section} className="flex items-center gap-3 px-3 py-2 bg-[#0d1117] rounded-lg">
+                      <span className="w-6 h-6 flex items-center justify-center bg-indigo-500/20 text-indigo-400 rounded text-xs font-bold">
+                        {idx + 1}
+                      </span>
+                      <span className="text-sm text-gray-300 capitalize">
+                        {section.replace(/_/g, " ")}
+                      </span>
+                    </div>
+                  ))}
+              </div>
+            </div>
+          )}
 
           {/* Charts */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

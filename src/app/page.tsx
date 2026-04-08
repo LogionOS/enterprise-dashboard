@@ -27,7 +27,7 @@ import StatsCard from "@/components/ui/StatsCard";
 import Badge from "@/components/ui/Badge";
 import { api } from "@/lib/api";
 import { seedDemoData, SEED_COUNT } from "@/lib/seed";
-import type { HealthResponse, AnalyticsResponse, AuditEntry } from "@/lib/types";
+import type { HealthResponse, AnalyticsResponse, AuditEntry, TrendEntry, DriftAlert } from "@/lib/types";
 
 const ACTION_COLORS: Record<string, string> = {
   PASS: "#34d399",
@@ -52,6 +52,8 @@ export default function OverviewPage() {
   const [seedProgress, setSeedProgress] = useState(0);
   const [auditIntegrity, setAuditIntegrity] = useState<{ valid: boolean; total: number; verified: number } | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [trendData, setTrendData] = useState<TrendEntry[]>([]);
+  const [driftAlert, setDriftAlert] = useState<DriftAlert | null>(null);
 
   const load = async () => {
     setLoading(true);
@@ -66,6 +68,8 @@ export default function OverviewPage() {
       setAnalytics(a);
       setRecentEvents(ev.entries);
       api.auditVerify().then(setAuditIntegrity).catch(() => {});
+      api.complianceTrend(30).then((d) => setTrendData(d.trend)).catch(() => {});
+      api.complianceDrift().then(setDriftAlert).catch(() => {});
     } catch (e) {
       const msg = e instanceof Error ? e.message : "Unknown error";
       setError(`Failed to load dashboard data: ${msg}`);
@@ -358,6 +362,108 @@ export default function OverviewPage() {
           )}
         </div>
       </div>
+
+      {/* Compliance Trend + Drift Alert */}
+      {trendData.length > 0 && (
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+          <div className="lg:col-span-2 bg-[#111827] rounded-xl border border-[#1e293b] p-5">
+            <h2 className="text-sm font-medium text-gray-400 mb-4">Compliance Rate Trend (30 days)</h2>
+            <ResponsiveContainer width="100%" height={200}>
+              <AreaChart data={trendData}>
+                <defs>
+                  <linearGradient id="complianceGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#34d399" stopOpacity={0.3} />
+                    <stop offset="95%" stopColor="#34d399" stopOpacity={0} />
+                  </linearGradient>
+                </defs>
+                <XAxis
+                  dataKey="date"
+                  tick={{ fontSize: 10, fill: "#6b7280" }}
+                  axisLine={false}
+                  tickLine={false}
+                  tickFormatter={(v: string) => v.slice(5)}
+                />
+                <YAxis
+                  domain={[0, 100]}
+                  tick={{ fontSize: 11, fill: "#6b7280" }}
+                  axisLine={false}
+                  tickLine={false}
+                  tickFormatter={(v: number) => `${v}%`}
+                />
+                <Tooltip
+                  contentStyle={{
+                    background: "#1f2937",
+                    border: "1px solid #374151",
+                    borderRadius: "8px",
+                    fontSize: "12px",
+                    color: "#e5e7eb",
+                  }}
+                  formatter={(value: number) => [`${value}%`, "Compliance Rate"]}
+                />
+                <Area
+                  type="monotone"
+                  dataKey="compliance_rate"
+                  stroke="#34d399"
+                  strokeWidth={2}
+                  fill="url(#complianceGrad)"
+                />
+              </AreaChart>
+            </ResponsiveContainer>
+          </div>
+
+          <div className="bg-[#111827] rounded-xl border border-[#1e293b] p-5">
+            <h2 className="text-sm font-medium text-gray-400 mb-4">Drift Detection</h2>
+            {driftAlert ? (
+              <div className="space-y-4">
+                <div className={`p-4 rounded-lg border ${
+                  driftAlert.is_drifting
+                    ? driftAlert.direction === "degrading"
+                      ? "bg-red-500/10 border-red-500/20"
+                      : "bg-emerald-500/10 border-emerald-500/20"
+                    : "bg-gray-500/10 border-gray-500/20"
+                }`}>
+                  <div className="text-xs text-gray-500 mb-1">Status</div>
+                  <div className={`text-lg font-bold ${
+                    driftAlert.is_drifting
+                      ? driftAlert.direction === "degrading" ? "text-red-400" : "text-emerald-400"
+                      : "text-gray-400"
+                  }`}>
+                    {driftAlert.is_drifting
+                      ? driftAlert.direction === "degrading" ? "⚠ Drift Detected" : "↑ Improving"
+                      : "Stable"}
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="bg-[#0d1117] rounded-lg p-3 text-center">
+                    <div className="text-xs text-gray-500">Baseline</div>
+                    <div className="text-lg font-bold text-gray-300">{driftAlert.baseline_compliance_rate}%</div>
+                    <div className="text-[10px] text-gray-600">{driftAlert.baseline_checks} checks</div>
+                  </div>
+                  <div className="bg-[#0d1117] rounded-lg p-3 text-center">
+                    <div className="text-xs text-gray-500">Recent</div>
+                    <div className="text-lg font-bold text-gray-300">{driftAlert.recent_compliance_rate}%</div>
+                    <div className="text-[10px] text-gray-600">{driftAlert.recent_checks} checks</div>
+                  </div>
+                </div>
+
+                {driftAlert.drift_percentage !== 0 && (
+                  <div className="text-center">
+                    <span className={`text-sm font-medium ${driftAlert.drift_percentage > 0 ? "text-emerald-400" : "text-red-400"}`}>
+                      {driftAlert.drift_percentage > 0 ? "+" : ""}{driftAlert.drift_percentage}%
+                    </span>
+                    <span className="text-xs text-gray-600 ml-1">drift</span>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="h-[200px] flex items-center justify-center text-gray-600 text-sm">
+                No drift data available
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Recent Events */}
       <div className="bg-[#111827] rounded-xl border border-[#1e293b] p-5">

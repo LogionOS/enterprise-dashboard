@@ -193,3 +193,82 @@ export interface HealthResponse {
     cache_size: number;
   };
 }
+
+// ── Policy Packs ─────────────────────────────────────────────
+export interface PolicyPack {
+  id: string;
+  name: string;
+  description: string;
+  jurisdiction: string;
+  regulations: string[];
+  industries: string[];
+  rule_count: number;
+}
+
+export interface PolicyPacksResponse {
+  total: number;
+  packs: PolicyPack[];
+}
+
+export interface PolicyPackDetail extends PolicyPack {
+  rule_prefixes: string[];
+  rule_ids: string[];
+  rule_ids_truncated: boolean;
+  total_rule_ids: number;
+}
+
+// ── Compliance Trend / Drift ─────────────────────────────────
+export interface TrendEntry {
+  date: string;
+  total: number;
+  pass_count: number;
+  flag_count: number;
+  block_count: number;
+  warn_count: number;
+  compliance_rate: number;
+  pii_detected_count: number;
+}
+
+export interface DriftAlert {
+  is_drifting: boolean;
+  baseline_compliance_rate: number;
+  recent_compliance_rate: number;
+  drift_percentage: number;
+  direction: "improving" | "degrading" | "stable";
+  baseline_period_days: number;
+  recent_period_days: number;
+  baseline_checks: number;
+  recent_checks: number;
+  threshold: number;
+}
+
+// ── Agent Traces ─────────────────────────────────────────────
+export interface TraceSummary {
+  trace_id: string;
+  span_count: number;
+  started_at: string;
+  ended_at: string;
+  worst_action: string;
+  actions: string;
+}
+
+export interface TraceEntry {
+  request_id: string;
+  timestamp: string;
+  trace_id: string;
+  span_name: string;
+  parent_span_id: string;
+  action: string;
+  risk_level: string;
+  latency_ms: number;
+  jurisdiction: string;
+}
+
+// ── Report Templates ─────────────────────────────────────────
+export interface ReportTemplate {
+  id: string;
+  name: string;
+  description: string;
+  sections: string[];
+  required_pack: string;
+}

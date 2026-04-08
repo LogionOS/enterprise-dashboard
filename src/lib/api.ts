@@ -10,6 +10,13 @@ import type {
   WebhookResponse,
   CheckResponse,
   ComplianceReportResponse,
+  PolicyPacksResponse,
+  PolicyPackDetail,
+  TrendEntry,
+  DriftAlert,
+  TraceSummary,
+  TraceEntry,
+  ReportTemplate,
 } from "./types";
 
 const DEFAULT_BASE_URL = "https://logionos-api.onrender.com";
@@ -139,4 +146,39 @@ export const api = {
 
   revokeApiKey: (keyId: number) =>
     request<{ status: string; key_id: number }>(`/v1/admin/api-keys/${keyId}`, { method: "DELETE" }),
+
+  // ── Policy Packs ───────────────────────────────────────────
+  packs: () => request<PolicyPacksResponse>("/v1/policy-packs"),
+
+  packDetail: (id: string) => request<PolicyPackDetail>(`/v1/policy-packs/${id}`),
+
+  // ── Compliance Trend / Drift ───────────────────────────────
+  complianceTrend: (days = 30) =>
+    request<{ days: number; trend: TrendEntry[] }>(`/v1/analytics/trend?days=${days}`),
+
+  complianceDrift: () => request<DriftAlert>("/v1/analytics/drift"),
+
+  // ── Agent Traces ───────────────────────────────────────────
+  traces: (limit = 20) =>
+    request<{ total: number; traces: TraceSummary[] }>(`/v1/traces?limit=${limit}`),
+
+  traceDetail: (traceId: string) =>
+    request<{ trace_id: string; span_count: number; entries: TraceEntry[] }>(`/v1/traces/${traceId}`),
+
+  // ── HITL Review Queue ──────────────────────────────────────
+  reviewQueue: (limit = 50) =>
+    request<{ total: number; queue: Record<string, unknown>[] }>(`/v1/incidents/queue?limit=${limit}`),
+
+  approveIncident: (id: string) =>
+    request<Record<string, unknown>>(`/v1/incidents/${id}/approve`, { method: "POST" }),
+
+  rejectIncident: (id: string, reason = "") =>
+    request<Record<string, unknown>>(`/v1/incidents/${id}/reject?reason=${encodeURIComponent(reason)}`, { method: "POST" }),
+
+  escalateIncident: (id: string, reason = "") =>
+    request<Record<string, unknown>>(`/v1/incidents/${id}/escalate?reason=${encodeURIComponent(reason)}`, { method: "POST" }),
+
+  // ── Report Templates ───────────────────────────────────────
+  reportTemplates: () =>
+    request<{ total: number; templates: ReportTemplate[] }>("/v1/reports/templates"),
 };

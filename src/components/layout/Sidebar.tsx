@@ -14,6 +14,8 @@ import {
   Rocket,
   AlertTriangle,
   Key,
+  Package,
+  GitBranch,
 } from "lucide-react";
 import { getRole } from "@/lib/auth";
 
@@ -22,9 +24,11 @@ const NAV_BASE = [
   { href: "/quickstart", label: "Quick Start", icon: Rocket },
   { href: "/check", label: "Live Check", icon: Zap },
   { href: "/events", label: "Events", icon: Activity },
+  { href: "/traces", label: "Traces", icon: GitBranch },
   { href: "/incidents", label: "Incidents", icon: AlertTriangle },
   { href: "/rules", label: "Regulations", icon: BookOpen },
   { href: "/policies", label: "Policies", icon: Shield },
+  { href: "/packs", label: "Packs", icon: Package },
   { href: "/reports", label: "Reports", icon: FileBarChart },
   { href: "/settings", label: "Settings", icon: Settings },
 ];
