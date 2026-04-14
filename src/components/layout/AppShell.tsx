@@ -9,7 +9,7 @@ import { ToastContainer } from "@/components/ui/Toast";
 
 export default function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const isLogin = pathname === "/login";
+  const isLogin = pathname === "/login" || pathname === "/welcome";
   const [isMobile, setIsMobile] = useState(false);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
 

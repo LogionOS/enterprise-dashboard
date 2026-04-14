@@ -41,6 +41,7 @@ const NAV_BASE = [
 
 const ADMIN_NAV = [
   { href: "/api-keys", label: "API Keys", icon: Key },
+  { href: "/admin/cards", label: "Founder Cards", icon: CreditCard },
 ];
 
 type SidebarProps = {

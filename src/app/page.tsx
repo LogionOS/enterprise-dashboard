@@ -1,10 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
   ShieldCheck,
   AlertTriangle,
-  Ban,
   Activity,
   BookOpen,
   Clock,
@@ -55,7 +54,7 @@ export default function OverviewPage() {
   const [trendData, setTrendData] = useState<TrendEntry[]>([]);
   const [driftAlert, setDriftAlert] = useState<DriftAlert | null>(null);
 
-  const load = async () => {
+  const load = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
@@ -76,9 +75,9 @@ export default function OverviewPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
-  useEffect(() => { load(); }, []);
+  useEffect(() => { load(); }, [load]);
 
   const handleSeed = async () => {
     setSeeding(true);
@@ -334,7 +333,7 @@ export default function OverviewPage() {
                   tick={{ fontSize: 10, fill: "#6b7280" }}
                   axisLine={false}
                   tickLine={false}
-                  tickFormatter={(v: string) => v.slice(5)}
+                  tickFormatter={(v) => String(v).slice(5)}
                 />
                 <YAxis tick={{ fontSize: 11, fill: "#6b7280" }} axisLine={false} tickLine={false} />
                 <Tooltip
@@ -381,14 +380,14 @@ export default function OverviewPage() {
                   tick={{ fontSize: 10, fill: "#6b7280" }}
                   axisLine={false}
                   tickLine={false}
-                  tickFormatter={(v: string) => v.slice(5)}
+                  tickFormatter={(v) => String(v).slice(5)}
                 />
                 <YAxis
                   domain={[0, 100]}
                   tick={{ fontSize: 11, fill: "#6b7280" }}
                   axisLine={false}
                   tickLine={false}
-                  tickFormatter={(v: number) => `${v}%`}
+                  tickFormatter={(v) => `${v}%`}
                 />
                 <Tooltip
                   contentStyle={{

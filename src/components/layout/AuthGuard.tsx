@@ -11,7 +11,7 @@ export default function AuthGuard({ children }: { children: React.ReactNode }) {
   const [authed, setAuthed] = useState(false);
 
   useEffect(() => {
-    if (pathname === "/login") {
+    if (pathname === "/login" || pathname === "/welcome") {
       setChecked(true);
       setAuthed(true);
       return;

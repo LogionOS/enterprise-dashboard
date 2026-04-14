@@ -468,8 +468,8 @@ export default function QuickStartPage() {
       <div className="bg-gradient-to-r from-indigo-500/10 to-emerald-500/10 border border-indigo-500/20 rounded-xl p-5 text-center">
         <p className="text-sm text-gray-300">
           Need help? Contact us at{" "}
-          <a href="mailto:chris@logionos.com" className="text-indigo-400 hover:underline">
-            chris@logionos.com
+          <a href="mailto:chris.ma@logionos.com" className="text-indigo-400 hover:underline">
+            chris.ma@logionos.com
           </a>
         </p>
       </div>
