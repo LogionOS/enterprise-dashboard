@@ -1,11 +1,26 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
-  Rocket, CheckCircle, Circle, ArrowRight, Zap, Activity,
-  BookOpen, FileBarChart, Shield, Settings, ExternalLink, Copy,
+  Rocket,
+  CheckCircle,
+  Circle,
+  ArrowRight,
+  ExternalLink,
+  Copy,
+  Key,
+  Loader2,
 } from "lucide-react";
 import Link from "next/link";
+import { api } from "@/lib/api";
+
+const LLM_PROVIDERS = [
+  { value: "openai", label: "OpenAI" },
+  { value: "anthropic", label: "Anthropic" },
+  { value: "google", label: "Google (Gemini)" },
+  { value: "mistral", label: "Mistral" },
+  { value: "other", label: "Other" },
+] as const;
 
 const STEPS = [
   {
@@ -101,6 +116,54 @@ const SAMPLE_QUERIES = [
 export default function QuickStartPage() {
   const [completed, setCompleted] = useState<Set<string>>(new Set());
   const [copiedIdx, setCopiedIdx] = useState<number | null>(null);
+  const [isFounderProgram, setIsFounderProgram] = useState(false);
+
+  const [byokProvider, setByokProvider] = useState<string>(LLM_PROVIDERS[0].value);
+  const [byokKey, setByokKey] = useState("");
+  const [byokSubmitting, setByokSubmitting] = useState(false);
+  const [byokMessage, setByokMessage] = useState<{ type: "ok" | "err"; text: string } | null>(
+    null
+  );
+
+  useEffect(() => {
+    let cancelled = false;
+    void (async () => {
+      try {
+        const u = await api.usage();
+        if (!cancelled && u.tier === "founder_program") setIsFounderProgram(true);
+      } catch {
+        /* ignore — banner hidden if usage unavailable */
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const submitByok = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setByokMessage(null);
+    if (!byokKey.trim()) {
+      setByokMessage({ type: "err", text: "Please enter an API key." });
+      return;
+    }
+    setByokSubmitting(true);
+    try {
+      await api.storeLLMKey(byokProvider, byokKey.trim());
+      setByokKey("");
+      setByokMessage({
+        type: "ok",
+        text: "API key saved successfully. Deep compliance analysis can use your provider.",
+      });
+    } catch (err) {
+      setByokMessage({
+        type: "err",
+        text: err instanceof Error ? err.message : "Failed to save API key.",
+      });
+    } finally {
+      setByokSubmitting(false);
+    }
+  };
 
   const toggle = (id: string) => {
     setCompleted((prev) => {
@@ -132,6 +195,115 @@ export default function QuickStartPage() {
             <p className="text-sm text-gray-500">Get up and running in 10 minutes</p>
           </div>
         </div>
+      </div>
+
+      {/* Founder Program welcome */}
+      {isFounderProgram && (
+        <div className="rounded-xl p-[1px] bg-gradient-to-r from-indigo-500 via-violet-500 to-indigo-400 shadow-lg shadow-indigo-500/15">
+          <div className="rounded-[11px] bg-[#0d1117] px-5 py-4 sm:px-6 sm:py-5">
+            <h2 className="text-lg font-semibold text-gray-100">
+              Welcome to the Founder Program!
+            </h2>
+            <p className="text-sm text-gray-400 mt-1.5 mb-4 max-w-2xl">
+              You have free access to all LogionOS compliance tools for 6 months.
+            </p>
+            <div className="flex flex-wrap gap-2">
+              <Link
+                href="/usage"
+                className="inline-flex items-center justify-center rounded-lg bg-indigo-500/15 border border-indigo-500/30 px-3 py-2 text-xs font-medium text-indigo-300 hover:bg-indigo-500/25 transition-colors"
+              >
+                View Usage
+              </Link>
+              <Link
+                href="/settings"
+                className="inline-flex items-center justify-center rounded-lg bg-indigo-500/15 border border-indigo-500/30 px-3 py-2 text-xs font-medium text-indigo-300 hover:bg-indigo-500/25 transition-colors"
+              >
+                Configure BYOK
+              </Link>
+              <Link
+                href="/billing"
+                className="inline-flex items-center justify-center rounded-lg bg-indigo-500/15 border border-indigo-500/30 px-3 py-2 text-xs font-medium text-indigo-300 hover:bg-indigo-500/25 transition-colors"
+              >
+                Check Plan
+              </Link>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* BYOK setup */}
+      <div className="bg-[#0d1117] border border-[#1e293b] rounded-xl p-5">
+        <div className="flex items-start gap-3 mb-3">
+          <div className="w-9 h-9 rounded-lg bg-indigo-500/15 flex items-center justify-center shrink-0">
+            <Key className="w-4 h-4 text-indigo-400" />
+          </div>
+          <div>
+            <h2 className="text-base font-semibold text-gray-100">
+              Configure Your LLM Key (Optional)
+            </h2>
+            <p className="text-sm text-gray-500 mt-1">
+              Bring your own OpenAI, Anthropic, or other provider API key so LogionOS can run
+              deeper compliance analysis (AI Judge and extended checks) on your account without
+              shared quota limits where your plan allows it.
+            </p>
+          </div>
+        </div>
+        <form onSubmit={submitByok} className="space-y-3 max-w-lg">
+          <div>
+            <label htmlFor="byok-provider" className="block text-xs font-medium text-gray-400 mb-1">
+              Provider
+            </label>
+            <select
+              id="byok-provider"
+              value={byokProvider}
+              onChange={(e) => setByokProvider(e.target.value)}
+              className="w-full rounded-lg border border-[#1e293b] bg-[#080b12] px-3 py-2 text-sm text-gray-200 outline-none focus:border-indigo-500/50 focus:ring-1 focus:ring-indigo-500/30"
+            >
+              {LLM_PROVIDERS.map((p) => (
+                <option key={p.value} value={p.value}>
+                  {p.label}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label htmlFor="byok-key" className="block text-xs font-medium text-gray-400 mb-1">
+              API key
+            </label>
+            <input
+              id="byok-key"
+              type="password"
+              autoComplete="off"
+              value={byokKey}
+              onChange={(e) => setByokKey(e.target.value)}
+              placeholder="sk-… or your provider secret"
+              className="w-full rounded-lg border border-[#1e293b] bg-[#080b12] px-3 py-2 text-sm text-gray-200 placeholder-gray-600 outline-none focus:border-indigo-500/50 focus:ring-1 focus:ring-indigo-500/30 font-mono"
+            />
+          </div>
+          {byokMessage && (
+            <p
+              className={`text-sm ${
+                byokMessage.type === "ok" ? "text-emerald-400" : "text-red-400"
+              }`}
+            >
+              {byokMessage.text}
+            </p>
+          )}
+          <button
+            type="submit"
+            disabled={byokSubmitting}
+            className="inline-flex items-center gap-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 disabled:pointer-events-none px-4 py-2 text-sm font-medium text-white transition-colors"
+          >
+            {byokSubmitting ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin" />
+                Saving…
+              </>
+            ) : (
+              "Save API key"
+            )}
+          </button>
+        </form>
       </div>
 
       {/* Progress Bar */}

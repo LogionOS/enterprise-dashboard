@@ -17,6 +17,10 @@ import type {
   TraceSummary,
   TraceEntry,
   ReportTemplate,
+  UsageInfo,
+  UsageHistoryEntry,
+  LLMKeyInfo,
+  Notification,
 } from "./types";
 
 const DEFAULT_BASE_URL = "https://logionos-api.onrender.com";
@@ -181,4 +185,42 @@ export const api = {
   // ── Report Templates ───────────────────────────────────────
   reportTemplates: () =>
     request<{ total: number; templates: ReportTemplate[] }>("/v1/reports/templates"),
+
+  // ── Usage & Quota ───────────────────────────────────────────
+  usage: () => request<UsageInfo>("/v1/usage"),
+
+  usageHistory: (days = 30) =>
+    request<{ days: number; history: UsageHistoryEntry[] }>(`/v1/usage/history?days=${days}`),
+
+  // ── BYOK ───────────────────────────────────────────────────
+  storeLLMKey: (provider: string, apiKey: string, modelOverride = "") =>
+    request<{ provider: string; status: string }>("/v1/settings/llm-keys", {
+      method: "POST",
+      body: JSON.stringify({ provider, api_key: apiKey, model_override: modelOverride }),
+    }),
+
+  listLLMKeys: () =>
+    request<{ providers: LLMKeyInfo[] }>("/v1/settings/llm-keys"),
+
+  deleteLLMKey: (provider: string) =>
+    request<{ status: string }>(`/v1/settings/llm-keys/${provider}`, { method: "DELETE" }),
+
+  // ── Notifications ──────────────────────────────────────────
+  notifications: (limit = 50, unreadOnly = false) =>
+    request<{ total: number; unread_count: number; notifications: Notification[] }>(
+      `/v1/notifications?limit=${limit}&unread_only=${unreadOnly}`
+    ),
+
+  markNotificationRead: (id: string) =>
+    request<{ status: string }>(`/v1/notifications/${id}/read`, { method: "PUT" }),
+
+  markAllNotificationsRead: () =>
+    request<{ status: string; marked: number }>("/v1/notifications/read-all", { method: "PUT" }),
+
+  // ── Program Keys ───────────────────────────────────────────
+  createProgramKeys: (count = 1, labelPrefix = "Founder Program", months = 6) =>
+    request<{ status: string; count: number; keys: Array<{ api_key: string; key_prefix: string; label: string; tier: string; expires_at: string }> }>(
+      "/v1/admin/program-keys",
+      { method: "POST", body: JSON.stringify({ count, label_prefix: labelPrefix, months }) }
+    ),
 };

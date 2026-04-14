@@ -9,6 +9,7 @@ import {
   BookOpen,
   Shield,
   FileBarChart,
+  BarChart3,
   Settings,
   Zap,
   Rocket,
@@ -16,6 +17,8 @@ import {
   Key,
   Package,
   GitBranch,
+  CreditCard,
+  X,
 } from "lucide-react";
 import { getRole } from "@/lib/auth";
 
@@ -30,6 +33,9 @@ const NAV_BASE = [
   { href: "/policies", label: "Policies", icon: Shield },
   { href: "/packs", label: "Packs", icon: Package },
   { href: "/reports", label: "Reports", icon: FileBarChart },
+  { href: "/usage", label: "Usage", icon: BarChart3 },
+  { href: "/billing", label: "Billing", icon: CreditCard },
+  { href: "/docs", label: "Docs", icon: BookOpen },
   { href: "/settings", label: "Settings", icon: Settings },
 ];
 
@@ -37,7 +43,17 @@ const ADMIN_NAV = [
   { href: "/api-keys", label: "API Keys", icon: Key },
 ];
 
-export default function Sidebar() {
+type SidebarProps = {
+  isOpen?: boolean;
+  onClose?: () => void;
+  isMobile?: boolean;
+};
+
+export default function Sidebar({
+  isOpen = true,
+  onClose,
+  isMobile = false,
+}: SidebarProps) {
   const pathname = usePathname();
   const [role, setRole] = useState("viewer");
 
@@ -47,9 +63,29 @@ export default function Sidebar() {
 
   const NAV = role === "admin" ? [...NAV_BASE, ...ADMIN_NAV] : NAV_BASE;
 
+  const handleNavClick = () => {
+    if (isMobile) onClose?.();
+  };
+
+  const showBackdrop = isMobile && isOpen;
+  const panelTransform = isMobile && !isOpen ? "-translate-x-full" : "translate-x-0";
+
   return (
-    <aside className="fixed left-0 top-0 h-screen w-60 bg-[#0d1117] border-r border-[#1e293b] flex flex-col z-40">
-      <div className="h-16 flex items-center gap-3 px-5 border-b border-[#1e293b]">
+    <>
+      {showBackdrop && (
+        <button
+          type="button"
+          aria-label="Close navigation menu"
+          className="fixed inset-0 z-40 bg-black/60 md:hidden"
+          onClick={onClose}
+        />
+      )}
+      <aside
+        className={`fixed left-0 top-0 h-screen w-60 bg-[#0d1117] border-r border-[#1e293b] flex flex-col z-50 transition-transform duration-200 ease-out md:translate-x-0 ${
+          isMobile && !isOpen ? "pointer-events-none" : ""
+        } ${panelTransform}`}
+      >
+      <div className="h-16 flex items-center gap-3 px-5 border-b border-[#1e293b] shrink-0">
         <div className="w-8 h-8 rounded-lg flex items-center justify-center overflow-hidden">
           <svg width="32" height="32" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
             <rect width="200" height="200" rx="24" fill="#000"/>
@@ -59,7 +95,7 @@ export default function Sidebar() {
             <path d="M60 100 C60 100, 70 125, 100 135 C130 145, 155 130, 155 100" stroke="white" strokeWidth="4" strokeLinecap="round" fill="none"/>
           </svg>
         </div>
-        <div>
+        <div className="min-w-0 flex-1">
           <span className="text-[15px] font-semibold text-gray-100 tracking-tight">
             LogionOS
           </span>
@@ -67,6 +103,16 @@ export default function Sidebar() {
             Enterprise Dashboard
           </span>
         </div>
+        {isMobile && (
+          <button
+            type="button"
+            onClick={onClose}
+            className="md:hidden flex-shrink-0 p-2 rounded-lg text-gray-400 hover:text-gray-200 hover:bg-white/10 transition-colors"
+            aria-label="Close sidebar"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        )}
       </div>
 
       <nav className="flex-1 py-4 px-3 space-y-1 overflow-y-auto">
@@ -76,6 +122,7 @@ export default function Sidebar() {
             <Link
               key={href}
               href={href}
+              onClick={handleNavClick}
               className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors ${
                 active
                   ? "bg-indigo-500/15 text-indigo-400 font-medium"
@@ -112,5 +159,6 @@ export default function Sidebar() {
         </div>
       </div>
     </aside>
+    </>
   );
 }

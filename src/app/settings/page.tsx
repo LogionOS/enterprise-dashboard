@@ -27,11 +27,19 @@ export default function SettingsPage() {
   const [killMode, setKillMode] = useState<KillMode>("normal");
   const [seeding, setSeeding] = useState(false);
   const [seedProgress, setSeedProgress] = useState(0);
+  /** True when the field shows the masked preview loaded from localStorage (not user-typed). */
+  const [apiKeyIsMaskedDisplay, setApiKeyIsMaskedDisplay] = useState(false);
 
   useEffect(() => {
     setApiUrl(localStorage.getItem("logionos_api_url") || "https://logionos-api.onrender.com");
     const storedKey = localStorage.getItem("logionos_api_key") || "";
-    setApiKey(storedKey ? storedKey.slice(0, 8) + "••••••••" : "");
+    if (storedKey) {
+      setApiKey(storedKey.slice(0, 8) + "••••••••");
+      setApiKeyIsMaskedDisplay(true);
+    } else {
+      setApiKey("");
+      setApiKeyIsMaskedDisplay(false);
+    }
     api.health().then(setHealth).catch(() => {});
     api.getKillSwitch().then((r) => setKillMode(r.mode as KillMode)).catch(() => {});
     loadWebhooks();
@@ -39,7 +47,6 @@ export default function SettingsPage() {
 
   const saveConfig = () => {
     localStorage.setItem("logionos_api_url", apiUrl);
-    localStorage.setItem("logionos_api_key", apiKey);
     setSaved(true);
     setTimeout(() => setSaved(false), 2000);
   };
@@ -103,7 +110,9 @@ export default function SettingsPage() {
   const handleSeed = async () => {
     setSeeding(true);
     setSeedProgress(0);
-    await seedDemoData(apiUrl, apiKey, (done) => setSeedProgress(done));
+    const keyForSeed =
+      typeof window !== "undefined" ? localStorage.getItem("logionos_api_key") || "" : "";
+    await seedDemoData(apiUrl, keyForSeed, (done) => setSeedProgress(done));
     setSeeding(false);
   };
 
@@ -135,8 +144,8 @@ export default function SettingsPage() {
               <User className="w-4 h-4 text-emerald-400" />
               <span className="text-xs text-gray-500">Your Role</span>
             </div>
-            <div className="text-sm font-medium text-gray-200">{health?.engine ? "Admin" : "—"}</div>
-            <div className="text-[10px] text-gray-600 mt-0.5">{health?.engine ? "Full access to all endpoints" : "Test connection to detect"}</div>
+            <div className="text-sm font-medium text-gray-200 capitalize">{typeof window !== "undefined" ? localStorage.getItem("logionos_role") || "—" : "—"}</div>
+            <div className="text-[10px] text-gray-600 mt-0.5">Role-based access control active</div>
           </div>
           <div className="bg-[#0d1117] rounded-lg border border-[#1e293b] p-4">
             <div className="flex items-center gap-2 mb-2">
@@ -253,7 +262,11 @@ export default function SettingsPage() {
           <input
             type="password"
             value={apiKey}
-            onChange={(e) => setApiKey(e.target.value)}
+            onChange={(e) => {
+              setApiKey(e.target.value);
+              setApiKeyIsMaskedDisplay(false);
+            }}
+            title={apiKeyIsMaskedDisplay ? "Masked preview of stored API key" : "API key (not saved from this page)"}
             placeholder="Enter new API key to replace current"
             className="w-full bg-[#0d1117] border border-[#1e293b] rounded-lg px-3 py-2 text-sm text-gray-300 font-mono outline-none focus:border-indigo-500/50"
             readOnly

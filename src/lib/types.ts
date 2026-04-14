@@ -272,3 +272,47 @@ export interface ReportTemplate {
   sections: string[];
   required_pack: string;
 }
+
+// ── Usage & Quota ─────────────────────────────────────────────
+export interface UsageInfo {
+  tier: string;
+  monthly_limit: number;
+  daily_limit: number;
+  llm_monthly_limit: number;
+  monthly_used: number;
+  daily_used: number;
+  llm_monthly_used: number;
+  monthly_remaining: number;
+  daily_remaining: number;
+  period: string;
+  policies_used?: number;
+  policies_limit?: number;
+  webhooks_used?: number;
+  webhooks_limit?: number;
+}
+
+export interface UsageHistoryEntry {
+  date: string;
+  calls: number;
+  llm_calls: number;
+}
+
+// ── BYOK ─────────────────────────────────────────────────────
+export interface LLMKeyInfo {
+  provider: string;
+  model_override: string;
+  created_at: string;
+  updated_at: string;
+}
+
+// ── Notifications ─────────────────────────────────────────────
+export interface Notification {
+  id: string;
+  api_key_hash: string;
+  type: string;
+  title: string;
+  message: string;
+  data: Record<string, unknown>;
+  is_read: boolean;
+  created_at: string;
+}
