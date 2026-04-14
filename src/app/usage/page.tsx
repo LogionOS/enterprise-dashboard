@@ -138,15 +138,10 @@ function ResourceMeter({
   );
 }
 
-function UsageChartTooltip({
-  active,
-  payload,
-  label,
-}: {
-  active?: boolean;
-  payload?: Array<{ value?: number; name?: string; color?: string; dataKey?: string }>;
-  label?: string;
-}) {
+function UsageChartTooltip(props: Record<string, unknown>) {
+  const active = props.active as boolean | undefined;
+  const payload = props.payload as ReadonlyArray<{ value?: number; name?: string; color?: string; dataKey?: string }> | undefined;
+  const label = props.label as string | number | undefined;
   if (!active || !payload?.length) return null;
   const calls = payload.find((p) => p.dataKey === "calls")?.value ?? 0;
   const llm = payload.find((p) => p.dataKey === "llm_calls")?.value ?? 0;

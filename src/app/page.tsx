@@ -397,7 +397,7 @@ export default function OverviewPage() {
                     fontSize: "12px",
                     color: "#e5e7eb",
                   }}
-                  formatter={(value: number) => [`${value}%`, "Compliance Rate"]}
+                  formatter={(value) => [`${value}%`, "Compliance Rate"]}
                 />
                 <Area
                   type="monotone"
