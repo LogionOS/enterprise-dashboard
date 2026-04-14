@@ -18,6 +18,11 @@ import {
   Package,
   GitBranch,
   CreditCard,
+  Users,
+  TrendingUp,
+  MessageSquareHeart,
+  Building2,
+  Radio,
   X,
 } from "lucide-react";
 import { getRole } from "@/lib/auth";
@@ -34,13 +39,18 @@ const NAV_BASE = [
   { href: "/packs", label: "Packs", icon: Package },
   { href: "/reports", label: "Reports", icon: FileBarChart },
   { href: "/usage", label: "Usage", icon: BarChart3 },
+  { href: "/team", label: "Team", icon: Building2 },
   { href: "/billing", label: "Billing", icon: CreditCard },
+  { href: "/status", label: "Status", icon: Radio },
   { href: "/docs", label: "Docs", icon: BookOpen },
+  { href: "/feedback", label: "Feedback", icon: MessageSquareHeart },
   { href: "/settings", label: "Settings", icon: Settings },
 ];
 
 const ADMIN_NAV = [
   { href: "/api-keys", label: "API Keys", icon: Key },
+  { href: "/admin/applicants", label: "Applicants", icon: Users },
+  { href: "/admin/program", label: "Program", icon: TrendingUp },
   { href: "/admin/cards", label: "Founder Cards", icon: CreditCard },
 ];
 

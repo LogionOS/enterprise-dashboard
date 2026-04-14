@@ -274,6 +274,15 @@ export interface ReportTemplate {
 }
 
 // ── Usage & Quota ─────────────────────────────────────────────
+export interface ProgramContext {
+  name: string;
+  tier: string;
+  expires_at?: string;
+  days_remaining?: number;
+  months_remaining?: number;
+  features?: string[];
+}
+
 export interface UsageInfo {
   tier: string;
   monthly_limit: number;
@@ -289,6 +298,7 @@ export interface UsageInfo {
   policies_limit?: number;
   webhooks_used?: number;
   webhooks_limit?: number;
+  program?: ProgramContext;
 }
 
 export interface UsageHistoryEntry {
@@ -305,6 +315,102 @@ export interface LLMKeyInfo {
   updated_at: string;
 }
 
+// ── Founder Program Applicants ─────────────────────────────────
+export interface Applicant {
+  id: number;
+  tally_response_id: string;
+  company: string;
+  website: string;
+  founder_name: string;
+  email: string;
+  country: string;
+  product_description: string;
+  ai_is_core: number;
+  team_size: string;
+  funding: string;
+  revenue_status: string;
+  vertical: string;
+  target_market: string;
+  accelerator: string;
+  use_case_type: string;
+  status: string;
+  admin_notes: string;
+  priority_tier: string;
+  issued_key_prefix: string;
+  issued_key_hash: string;
+  issued_at: string | null;
+  activated_at: string | null;
+  first_usage_at: string | null;
+  last_active_at: string | null;
+  usage_total: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ApplicantListResponse {
+  total: number;
+  applicants: Applicant[];
+}
+
+export interface CohortAnalytics {
+  total_applicants: number;
+  by_status: Record<string, number>;
+  accepted: number;
+  activated: number;
+  active_7d: number;
+  dormant_30d: number;
+  top_usage: Array<{
+    id: number;
+    company: string;
+    founder_name: string;
+    email: string;
+    usage_total: number;
+    last_active_at: string | null;
+  }>;
+  by_country: Record<string, number>;
+  by_vertical: Record<string, number>;
+  expiring_soon: Array<{
+    id: number;
+    company: string;
+    founder_name: string;
+    email: string;
+    issued_at: string;
+  }>;
+  funnel: {
+    applied: number;
+    accepted: number;
+    activated: number;
+    active_7d: number;
+  };
+}
+
+export interface AcceptResponse {
+  status: string;
+  id: number;
+  api_key: string;
+  key_prefix: string;
+  expires_at: string;
+  email_sent: boolean;
+  warning: string;
+}
+
+// ── Testimonials ──────────────────────────────────────────────
+export interface Testimonial {
+  id: number;
+  api_key_hash: string;
+  company: string;
+  founder_name: string;
+  email: string;
+  what_helped: string;
+  use_case: string;
+  would_recommend: number;
+  allow_case_study: number;
+  allow_logo_use: number;
+  nps_score: number;
+  additional_comments: string;
+  created_at: string;
+}
+
 // ── Notifications ─────────────────────────────────────────────
 export interface Notification {
   id: string;
@@ -315,4 +421,56 @@ export interface Notification {
   data: Record<string, unknown>;
   is_read: boolean;
   created_at: string;
+}
+
+// ── System Status ─────────────────────────────────────────────
+export interface SystemStatus {
+  status: string;
+  version: string;
+  uptime_seconds: number;
+  components: Record<string, string>;
+  timestamp: string;
+}
+
+// ── IP Allowlist ──────────────────────────────────────────────
+export interface IPAllowlistEntry {
+  id: number;
+  key_hash: string;
+  cidr: string;
+  label: string;
+  created_at: string;
+}
+
+// ── Webhook Delivery Log ──────────────────────────────────────
+export interface WebhookDelivery {
+  id: number;
+  webhook_id: string;
+  event: string;
+  status_code: number | null;
+  attempt: number;
+  success: number;
+  error: string;
+  response_ms: number;
+  created_at: string;
+}
+
+// ── Organization / Team ───────────────────────────────────────
+export interface Organization {
+  id: string;
+  name: string;
+  slug: string;
+  plan: string;
+  owner_email: string;
+  created_at: string;
+  member_count: number;
+}
+
+export interface OrgMember {
+  id: number;
+  org_id: string;
+  email: string;
+  role: string;
+  invited_by: string;
+  joined_at: string | null;
+  status: string;
 }

@@ -9,6 +9,10 @@ import {
   Shield,
   Bell,
   CalendarRange,
+  Rocket,
+  Clock,
+  ArrowUpRight,
+  Star,
 } from "lucide-react";
 import {
   AreaChart,
@@ -20,7 +24,7 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import { api } from "@/lib/api";
-import type { UsageInfo, UsageHistoryEntry } from "@/lib/types";
+import type { UsageInfo, UsageHistoryEntry, ProgramContext } from "@/lib/types";
 
 type QuotaTone = "emerald" | "amber" | "red";
 
@@ -243,6 +247,9 @@ export default function UsagePage() {
 
       {usage && (
         <>
+          {/* Founder Program Context */}
+          {usage.program && <FounderProgramBanner program={usage.program} />}
+
           {/* Quota progress */}
           <section>
             <div className="flex items-center gap-2 mb-3">
@@ -367,6 +374,79 @@ export default function UsagePage() {
           No usage data returned from the API.
         </div>
       )}
+    </div>
+  );
+}
+
+function FounderProgramBanner({ program }: { program: ProgramContext }) {
+  const daysLeft = program.days_remaining ?? 0;
+  const monthsLeft = program.months_remaining ?? 0;
+  const isUrgent = daysLeft <= 30;
+  const expiryDate = program.expires_at?.slice(0, 10) || "—";
+
+  return (
+    <div className={`rounded-xl border p-5 space-y-4 ${
+      isUrgent
+        ? "bg-amber-500/5 border-amber-500/25"
+        : "bg-indigo-500/5 border-indigo-500/25"
+    }`}>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <div className="flex items-center gap-3">
+          <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${
+            isUrgent ? "bg-amber-500/15" : "bg-indigo-500/15"
+          }`}>
+            <Rocket className={`w-5 h-5 ${isUrgent ? "text-amber-400" : "text-indigo-400"}`} />
+          </div>
+          <div>
+            <h2 className="text-base font-semibold text-gray-100">Founder Program</h2>
+            <p className="text-xs text-gray-500">6-month complimentary access to LogionOS</p>
+          </div>
+        </div>
+        <div className="flex items-center gap-4">
+          <div className="text-right">
+            <div className="flex items-center gap-1.5">
+              <Clock className={`w-3.5 h-3.5 ${isUrgent ? "text-amber-400" : "text-gray-500"}`} />
+              <span className={`text-sm font-medium ${isUrgent ? "text-amber-400" : "text-gray-300"}`}>
+                {daysLeft > 0 ? `${monthsLeft} months (${daysLeft}d) remaining` : "Expired"}
+              </span>
+            </div>
+            <p className="text-[11px] text-gray-600 mt-0.5">Expires {expiryDate}</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Progress bar for program duration */}
+      {daysLeft > 0 && (
+        <div>
+          <div className="w-full bg-[#1e293b] rounded-full h-1.5">
+            <div
+              className={`h-1.5 rounded-full transition-all duration-500 ${isUrgent ? "bg-amber-500" : "bg-indigo-500"}`}
+              style={{ width: `${Math.max(2, ((180 - daysLeft) / 180) * 100)}%` }}
+            />
+          </div>
+          <div className="flex justify-between mt-1">
+            <span className="text-[10px] text-gray-600">Program start</span>
+            <span className="text-[10px] text-gray-600">{expiryDate}</span>
+          </div>
+        </div>
+      )}
+
+      {/* Features + CTA */}
+      <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 pt-1">
+        <div className="flex flex-wrap gap-2">
+          {(program.features || []).slice(0, 4).map((f) => (
+            <span key={f} className="inline-flex items-center gap-1 text-[11px] text-gray-400 bg-[#0d1117] rounded-md px-2 py-1 border border-[#1e293b]">
+              <Star className="w-3 h-3 text-indigo-400/50" /> {f}
+            </span>
+          ))}
+        </div>
+        <a
+          href="mailto:chris.ma@logionos.com?subject=LogionOS%20Upgrade%20Inquiry"
+          className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium bg-indigo-500 text-white hover:bg-indigo-600 transition-colors shrink-0"
+        >
+          Talk to Us About Upgrading <ArrowUpRight className="w-4 h-4" />
+        </a>
+      </div>
     </div>
   );
 }

@@ -21,6 +21,16 @@ import type {
   UsageHistoryEntry,
   LLMKeyInfo,
   Notification,
+  ApplicantListResponse,
+  Applicant,
+  CohortAnalytics,
+  AcceptResponse,
+  Testimonial,
+  SystemStatus,
+  IPAllowlistEntry,
+  WebhookDelivery,
+  Organization,
+  OrgMember,
 } from "./types";
 
 const DEFAULT_BASE_URL = "https://logionos-api.onrender.com";
@@ -223,4 +233,98 @@ export const api = {
       "/v1/admin/program-keys",
       { method: "POST", body: JSON.stringify({ count, label_prefix: labelPrefix, months }) }
     ),
+
+  // ── Founder Program Applicants ────────────────────────────
+  applicants: (status = "", search = "", limit = 200, offset = 0) =>
+    request<ApplicantListResponse>(
+      `/v1/admin/applicants?status=${status}&search=${encodeURIComponent(search)}&limit=${limit}&offset=${offset}`
+    ),
+
+  applicantDetail: (id: number) =>
+    request<Applicant>(`/v1/admin/applicants/${id}`),
+
+  updateApplicant: (id: number, data: { status?: string; admin_notes?: string; priority_tier?: string }) =>
+    request<{ status: string; id: number }>(`/v1/admin/applicants/${id}`, {
+      method: "PUT",
+      body: JSON.stringify(data),
+    }),
+
+  acceptApplicant: (id: number) =>
+    request<AcceptResponse>(`/v1/admin/applicants/${id}/accept`, { method: "POST" }),
+
+  rejectApplicant: (id: number) =>
+    request<{ status: string; id: number; email_sent: boolean }>(`/v1/admin/applicants/${id}/reject`, { method: "POST" }),
+
+  waitlistApplicant: (id: number) =>
+    request<{ status: string; id: number; email_sent: boolean }>(`/v1/admin/applicants/${id}/waitlist`, { method: "POST" }),
+
+  programAnalytics: () =>
+    request<CohortAnalytics>("/v1/admin/program/analytics"),
+
+  submitTestimonial: (data: {
+    company?: string;
+    founder_name?: string;
+    email?: string;
+    what_helped?: string;
+    use_case?: string;
+    would_recommend?: boolean;
+    allow_case_study?: boolean;
+    allow_logo_use?: boolean;
+    nps_score?: number;
+    additional_comments?: string;
+  }) =>
+    request<{ status: string; result: { status: string; id: number } }>("/v1/program/testimonial", {
+      method: "POST",
+      body: JSON.stringify(data),
+    }),
+
+  listTestimonials: (limit = 100) =>
+    request<{ total: number; testimonials: Testimonial[] }>(`/v1/admin/program/testimonials?limit=${limit}`),
+
+  // ── System Status ────────────────────────────────────────────
+  systemStatus: () => request<SystemStatus>("/v1/status"),
+
+  // ── IP Allowlist ─────────────────────────────────────────────
+  ipAllowlist: () =>
+    request<{ entries: IPAllowlistEntry[] }>("/v1/ip-allowlist"),
+
+  addIPAllowlist: (cidr: string, label = "") =>
+    request<{ ok: boolean; entry: IPAllowlistEntry }>("/v1/ip-allowlist", {
+      method: "POST",
+      body: JSON.stringify({ cidr, label }),
+    }),
+
+  removeIPAllowlist: (entryId: number) =>
+    request<{ ok: boolean }>(`/v1/ip-allowlist/${entryId}`, { method: "DELETE" }),
+
+  adminIPAllowlist: () =>
+    request<{ entries: IPAllowlistEntry[] }>("/v1/admin/ip-allowlist"),
+
+  // ── Webhook Delivery Log ─────────────────────────────────────
+  webhookDeliveries: (webhookId = "", limit = 50) =>
+    request<{ deliveries: WebhookDelivery[]; count: number }>(
+      `/v1/admin/webhook-deliveries?webhook_id=${webhookId}&limit=${limit}`
+    ),
+
+  // ── Organization / Team ──────────────────────────────────────
+  organizations: () =>
+    request<{ organizations: Organization[] }>("/v1/organizations"),
+
+  createOrg: (name: string) =>
+    request<{ ok: boolean; organization: Organization }>("/v1/organizations", {
+      method: "POST",
+      body: JSON.stringify({ name }),
+    }),
+
+  orgMembers: (orgId: string) =>
+    request<{ members: OrgMember[] }>(`/v1/organizations/${orgId}/members`),
+
+  inviteMember: (orgId: string, email: string, role = "member") =>
+    request<{ ok: boolean; member: OrgMember }>(`/v1/organizations/${orgId}/members`, {
+      method: "POST",
+      body: JSON.stringify({ email, role }),
+    }),
+
+  removeMember: (orgId: string, memberId: number) =>
+    request<{ ok: boolean }>(`/v1/organizations/${orgId}/members/${memberId}`, { method: "DELETE" }),
 };
