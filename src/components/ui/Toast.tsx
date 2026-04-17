@@ -33,12 +33,19 @@ const STYLES = {
 export function ToastContainer() {
   const [items, setItems] = useState<ToastItem[]>([]);
 
-  _pushToast = useCallback((item: ToastItem) => {
+  const pushToast = useCallback((item: ToastItem) => {
     setItems((prev) => [...prev, item]);
     setTimeout(() => {
       setItems((prev) => prev.filter((i) => i.id !== item.id));
     }, 4000);
   }, []);
+
+  useEffect(() => {
+    _pushToast = pushToast;
+    return () => {
+      _pushToast = null;
+    };
+  }, [pushToast]);
 
   if (items.length === 0) return null;
 
