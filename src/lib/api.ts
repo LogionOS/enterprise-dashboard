@@ -96,10 +96,10 @@ export const api = {
   deleteWebhook: (id: string) =>
     request<void>(`/v1/webhooks/${id}`, { method: "DELETE" }),
 
-  check: (query: string, jurisdiction = "US", responseText?: string) =>
+  check: (query: string, jurisdiction = "US", responseText?: string, actionType = "prompt") =>
     request<CheckResponse>("/v1/check", {
       method: "POST",
-      body: JSON.stringify({ query, jurisdiction, response_text: responseText }),
+      body: JSON.stringify({ query, jurisdiction, response_text: responseText, action_type: actionType }),
     }),
 
   generateReport: (period = "last_24h", limit = 100) =>

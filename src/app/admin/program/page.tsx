@@ -12,6 +12,11 @@ import {
   Clock,
   Loader2,
   ArrowRight,
+  MessageSquareHeart,
+  ArrowUpCircle,
+  Star,
+  ShieldCheck,
+  DollarSign,
 } from "lucide-react";
 import { api } from "@/lib/api";
 import type { CohortAnalytics } from "@/lib/types";
@@ -65,13 +70,18 @@ export default function ProgramDashboardPage() {
         </p>
       </div>
 
-      {/* KPI Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-        <KPICard icon={Users} label="Total Applicants" value={data.total_applicants} color="text-blue-400" />
+      {/* KPI Cards — 30-Day Program Health */}
+      <div className="grid grid-cols-2 md:grid-cols-5 lg:grid-cols-10 gap-3">
+        <KPICard icon={Users} label="Applications" value={data.total_applicants} color="text-blue-400" />
         <KPICard icon={UserCheck} label="Accepted" value={data.accepted} color="text-indigo-400" />
         <KPICard icon={Zap} label="Activated" value={data.activated} color="text-emerald-400" />
         <KPICard icon={TrendingUp} label="Active (7d)" value={data.active_7d} color="text-green-400" />
+        <KPICard icon={Star} label="Design Partners" value={data.design_partners ?? 0} color="text-amber-400" />
+        <KPICard icon={MessageSquareHeart} label="Testimonials" value={data.testimonials_submitted} color="text-pink-400" />
+        <KPICard icon={ShieldCheck} label="Enterprise-Ready" value={data.enterprise_readiness_signals ?? 0} color="text-violet-400" />
+        <KPICard icon={DollarSign} label="Paid Candidates" value={data.paid_conversion_candidates ?? 0} color="text-cyan-400" />
         <KPICard icon={AlertTriangle} label="Dormant (30d+)" value={data.dormant_30d} color="text-yellow-400" />
+        <KPICard icon={ArrowUpCircle} label="Legacy Convert" value={data.conversion_candidates} color="text-gray-400" />
       </div>
 
       {/* Conversion Funnel */}

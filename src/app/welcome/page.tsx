@@ -25,7 +25,7 @@ const STEPS = [
   {
     num: 2,
     title: "Run a Compliance Check",
-    desc: "Test any AI prompt against 4,000+ regulations across 6 jurisdictions in real-time.",
+    desc: "Test any AI input against 10,000+ policy rules across 12 jurisdictions with pass/warn/block decisions.",
     icon: Shield,
   },
   {
@@ -175,11 +175,11 @@ function WelcomeContent() {
             </span>
           </h1>
           <p className="text-base sm:text-lg text-gray-400 max-w-xl mx-auto mb-2">
-            AI Compliance Infrastructure for the Agentic Era
+            Embedded Runtime Supervisor for Enterprise AI
           </p>
           <div className="inline-flex items-center gap-2 text-xs text-indigo-400 bg-indigo-500/10 border border-indigo-500/20 rounded-full px-3 py-1">
             <Globe className="w-3 h-3" />
-            Founder Program · Free 6 Months · 4,000+ Regulations
+            Founder Program · $15K Value · 10,000+ Policy Rules · 12 Jurisdictions
           </div>
         </div>
       </div>
@@ -390,7 +390,7 @@ function WelcomeContent() {
             </a>
           </div>
           <p className="text-[10px] text-gray-700">
-            LogionOS · Runtime Compliance for AI Systems
+            LogionOS · Embedded Runtime Supervisor for Enterprise AI
           </p>
         </div>
       </div>

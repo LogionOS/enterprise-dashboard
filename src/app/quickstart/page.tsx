@@ -61,14 +61,14 @@ const STEPS = [
   },
   {
     id: "rules",
-    title: "Explore 4,000+ Regulations",
-    desc: "Browse the full regulation database covering 6 jurisdictions.",
+    title: "Explore 10,000+ Policy Rules",
+    desc: "Browse the full policy rule database covering 12 jurisdictions.",
     action: { label: "Browse Rules", href: "/rules" },
     details: [
-      "Filter by jurisdiction: US, EU, JP, UK, SG, HK",
+      "Filter by jurisdiction: US, EU, JP, UK, SG, HK, CA, KR, AU, IN, BR, CN",
       "Search by keyword to find specific regulations",
       "Click any rule to see full text, triggers, and severity",
-      "Rules cover: finance, healthcare, privacy, AI safety, and more",
+      "Rules cover: finance, healthcare, privacy, AI safety, FinTech, HR, content generation, and more",
     ],
   },
   {
@@ -385,6 +385,44 @@ export default function QuickStartPage() {
             </div>
           );
         })}
+      </div>
+
+      {/* Policy Packs */}
+      <div className="bg-[#0d1117] border border-[#1e293b] rounded-xl p-5">
+        <h2 className="text-lg font-semibold text-gray-100 mb-1">
+          Choose Your Policy Packs
+        </h2>
+        <p className="text-sm text-gray-500 mb-4">
+          Select the packs that match your industry and use case. Packs are pre-built rule sets that focus your compliance checks.
+        </p>
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+          {[
+            { name: "Healthcare AI", color: "text-red-400 bg-red-500/10" },
+            { name: "FinTech AI", color: "text-blue-400 bg-blue-500/10" },
+            { name: "HIPAA", color: "text-pink-400 bg-pink-500/10" },
+            { name: "GDPR", color: "text-emerald-400 bg-emerald-500/10" },
+            { name: "EU AI Act", color: "text-violet-400 bg-violet-500/10" },
+            { name: "Startup Enterprise-Ready", color: "text-amber-400 bg-amber-500/10" },
+            { name: "Customer Support AI", color: "text-cyan-400 bg-cyan-500/10" },
+            { name: "Enterprise Data Handling", color: "text-indigo-400 bg-indigo-500/10" },
+            { name: "HR & Employment AI", color: "text-orange-400 bg-orange-500/10" },
+            { name: "Content Generation AI", color: "text-teal-400 bg-teal-500/10" },
+            { name: "SOX Financial", color: "text-yellow-400 bg-yellow-500/10" },
+            { name: "Cross-Border", color: "text-gray-400 bg-gray-500/10" },
+          ].map((pack) => (
+            <div key={pack.name} className={`rounded-lg border border-[#1e293b] px-3 py-2 text-xs font-medium ${pack.color}`}>
+              {pack.name}
+            </div>
+          ))}
+        </div>
+        <div className="mt-4">
+          <Link
+            href="/packs"
+            className="inline-flex items-center gap-2 text-sm font-medium text-indigo-400 hover:text-indigo-300 transition-colors"
+          >
+            View All Policy Packs <ExternalLink className="w-3.5 h-3.5" />
+          </Link>
+        </div>
       </div>
 
       {/* Sample Queries */}

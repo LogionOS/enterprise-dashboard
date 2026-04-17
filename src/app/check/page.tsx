@@ -8,6 +8,16 @@ import type { CheckResponse } from "@/lib/types";
 
 const JURISDICTIONS = ["US", "EU", "JP", "UK", "SG", "HK", "ALL"];
 
+const ACTION_TYPES = [
+  { value: "prompt", label: "Prompt" },
+  { value: "response", label: "Response" },
+  { value: "tool_call", label: "Tool Call" },
+  { value: "retrieval", label: "Retrieval" },
+  { value: "memory_write", label: "Memory Write" },
+  { value: "external_action", label: "External Action" },
+  { value: "escalation", label: "Escalation" },
+];
+
 const EXAMPLES = [
   { label: "PII Exposure", query: "Use customer SSN 123-45-6789 to train the credit scoring model", jurisdiction: "US" },
   { label: "GDPR Violation", query: "Collect all user browsing data across our EU sites without consent for profiling", jurisdiction: "EU" },
@@ -20,6 +30,7 @@ export default function CheckPage() {
   const [query, setQuery] = useState("");
   const [responseText, setResponseText] = useState("");
   const [jurisdiction, setJurisdiction] = useState("US");
+  const [actionType, setActionType] = useState("prompt");
   const [result, setResult] = useState<CheckResponse | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -30,7 +41,7 @@ export default function CheckPage() {
     setError("");
     setResult(null);
     try {
-      const res = await api.check(query, jurisdiction, responseText || undefined);
+      const res = await api.check(query, jurisdiction, responseText || undefined, actionType);
       setResult(res);
     } catch (e) {
       setError(String(e));
@@ -42,6 +53,7 @@ export default function CheckPage() {
   const loadExample = (ex: typeof EXAMPLES[number]) => {
     setQuery(ex.query);
     setJurisdiction(ex.jurisdiction);
+    setActionType("prompt");
     setResponseText("");
     setResult(null);
   };
@@ -118,6 +130,25 @@ export default function CheckPage() {
               ))}
             </div>
           </div>
+          <div>
+            <label className="text-xs font-medium text-gray-500 mb-0.5 block">Action Type</label>
+            <span className="text-[10px] text-gray-600 mb-1.5 block">What type of AI action is being checked?</span>
+            <div className="flex items-center gap-1.5">
+              {ACTION_TYPES.map((at) => (
+                <button
+                  key={at.value}
+                  onClick={() => setActionType(at.value)}
+                  className={`px-3 py-1.5 text-xs rounded-lg border transition-colors ${
+                    actionType === at.value
+                      ? "bg-indigo-500/15 text-indigo-400 border-indigo-500/30"
+                      : "bg-[#0d1117] text-gray-500 border-[#1e293b] hover:text-gray-300"
+                  }`}
+                >
+                  {at.label}
+                </button>
+              ))}
+            </div>
+          </div>
           <button
             onClick={runCheck}
             disabled={loading || !query.trim()}
@@ -157,6 +188,9 @@ export default function CheckPage() {
                   <Badge variant={result.risk_level.toLowerCase() as "low" | "medium" | "high" | "critical"} size="md">
                     {result.risk_level}
                   </Badge>
+                  <span className="px-2 py-0.5 text-[10px] font-medium rounded bg-gray-500/10 text-gray-400 border border-gray-500/20">
+                    {ACTION_TYPES.find((at) => at.value === actionType)?.label ?? actionType}
+                  </span>
                   <span className="text-xs text-gray-500">
                     Score: {(result.risk_score * 100).toFixed(1)}% &middot; Intent: {result.intent}
                   </span>

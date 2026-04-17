@@ -255,7 +255,14 @@ For audit verification, contact compliance@logionos.com
                     <td className="py-3 px-4 text-gray-300 font-mono text-xs">{ev.request_id.slice(0, 16)}</td>
                     <td className="py-3 px-4"><Badge variant="default">{ev.jurisdiction}</Badge></td>
                     <td className="py-3 px-4">
-                      <Badge variant={ev.action.toLowerCase() as "pass" | "flag" | "block" | "warn"}>{ev.action}</Badge>
+                      <div className="flex items-center gap-1.5">
+                        <Badge variant={ev.action.toLowerCase() as "pass" | "flag" | "block" | "warn"}>{ev.action}</Badge>
+                        {ev.action_type && (
+                          <span className="px-1.5 py-0.5 text-[10px] font-medium rounded bg-gray-500/10 text-gray-500 border border-gray-500/20">
+                            {ev.action_type}
+                          </span>
+                        )}
+                      </div>
                     </td>
                     <td className="py-3 px-4">
                       <Badge variant={ev.risk_level.toLowerCase() as "low" | "medium" | "high" | "critical"}>{ev.risk_level}</Badge>
@@ -318,6 +325,11 @@ For audit verification, contact compliance@logionos.com
                 <div className="flex items-center gap-2 mb-2">
                   <Badge variant={selected.action.toLowerCase() as "pass" | "flag" | "block" | "warn"} size="md">{selected.action}</Badge>
                   <Badge variant={selected.risk_level.toLowerCase() as "low" | "medium" | "high" | "critical"} size="md">{selected.risk_level}</Badge>
+                  {selected.action_type && (
+                    <span className="px-2 py-0.5 text-[10px] font-medium rounded bg-gray-500/10 text-gray-400 border border-gray-500/20">
+                      {selected.action_type}
+                    </span>
+                  )}
                 </div>
                 <div className="text-xs text-gray-500">
                   {selected.rules_triggered} rules triggered &middot; {selected.latency_ms.toFixed(1)}ms processing
@@ -335,6 +347,7 @@ For audit verification, contact compliance@logionos.com
               {/* Decision Details */}
               <Section title="Compliance Decision">
                 <InfoRow label="Action" value={selected.action} />
+                {selected.action_type && <InfoRow label="Action Type" value={selected.action_type} />}
                 <InfoRow label="Risk Level" value={selected.risk_level} />
                 <InfoRow label="Rules Triggered" value={String(selected.rules_triggered)} />
                 <InfoRow label="Processing Latency" value={`${selected.latency_ms.toFixed(1)} ms`} />

@@ -103,6 +103,7 @@ export interface AuditEntry {
   rules_triggered: number;
   pii_types: string[];
   latency_ms: number;
+  action_type?: string;
 }
 
 export interface AuditListResponse {
@@ -336,6 +337,8 @@ export interface Applicant {
   status: string;
   admin_notes: string;
   priority_tier: string;
+  program_tier: string;
+  tier_upgraded_at: string | null;
   issued_key_prefix: string;
   issued_key_hash: string;
   issued_at: string | null;
@@ -359,6 +362,11 @@ export interface CohortAnalytics {
   activated: number;
   active_7d: number;
   dormant_30d: number;
+  testimonials_submitted: number;
+  conversion_candidates: number;
+  design_partners: number;
+  enterprise_readiness_signals: number;
+  paid_conversion_candidates: number;
   top_usage: Array<{
     id: number;
     company: string;
