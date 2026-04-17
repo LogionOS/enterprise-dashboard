@@ -412,6 +412,7 @@ export default function QuickStartPage() {
             { name: "India DPDP", color: "text-orange-400 bg-orange-500/10" },
             { name: "Brazil LGPD", color: "text-green-400 bg-green-500/10" },
             { name: "China PIPL", color: "text-red-400 bg-red-500/10" },
+            { name: "SOC2 Readiness", color: "text-purple-400 bg-purple-500/10" },
             { name: "SOX Financial", color: "text-yellow-400 bg-yellow-500/10" },
             { name: "Startup Enterprise-Ready", color: "text-amber-400 bg-amber-500/10" },
             { name: "Customer Support AI", color: "text-cyan-400 bg-cyan-500/10" },
