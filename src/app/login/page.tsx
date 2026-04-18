@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Zap, ArrowRight, AlertCircle, CheckCircle } from "lucide-react";
-import { login } from "@/lib/auth";
+import { login } from "@/lib/legacy-auth";
 
 export default function LoginPage() {
   const router = useRouter();

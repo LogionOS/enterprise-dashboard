@@ -10,6 +10,11 @@ import { ToastContainer } from "@/components/ui/Toast";
 export default function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const isLogin = pathname === "/login" || pathname === "/welcome";
+  const isClerkSurface =
+    pathname?.startsWith("/sign-in") ||
+    pathname?.startsWith("/sign-up") ||
+    pathname?.startsWith("/me") ||
+    pathname?.startsWith("/teams");
   const [isMobile, setIsMobile] = useState(false);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
 
@@ -40,8 +45,10 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   return (
     <AuthGuard>
       <ToastContainer />
-      {isLogin ? (
-        children
+      {isLogin || isClerkSurface ? (
+        <main className="min-h-screen bg-[#080b12]">
+          <div className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6">{children}</div>
+        </main>
       ) : (
         <>
           <Sidebar

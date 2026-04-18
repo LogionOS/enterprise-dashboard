@@ -13,7 +13,7 @@ import {
   BarChart3,
   Loader2,
 } from "lucide-react";
-import { login } from "@/lib/auth";
+import { login } from "@/lib/legacy-auth";
 
 const STEPS = [
   {

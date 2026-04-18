@@ -2,7 +2,7 @@ import { z } from "zod";
 
 // Runtime-validated, TS-inferred mirror of the API contract. Keep this file
 // small: mirror ONLY the fields the Dashboard actually consumes. Adding a new
-// field must be an explicit, reviewed change — copying the entire API Pydantic
+// field must be an explicit, reviewed change -- copying the entire API Pydantic
 // surface defeats the point of this module.
 
 export const PlanSchema = z.enum(["trial", "basic", "team", "enterprise"]);

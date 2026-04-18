@@ -25,7 +25,7 @@ import {
   Radio,
   X,
 } from "lucide-react";
-import { getRole } from "@/lib/auth";
+import { getRole } from "@/lib/legacy-auth";
 
 const NAV_BASE = [
   { href: "/", label: "Overview", icon: LayoutDashboard },

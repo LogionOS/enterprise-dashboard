@@ -1,5 +1,5 @@
 // Typed error hierarchy thrown by the shared API client. Feature pages catch
-// these — not raw Response objects — so we can render consistent UIs (sign-in
+// these -- not raw Response objects -- so we can render consistent UIs (sign-in
 // prompt, upgrade banner, rate-limit notice, etc.) without each page
 // re-implementing HTTP status dispatch.
 

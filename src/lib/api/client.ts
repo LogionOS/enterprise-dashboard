@@ -9,7 +9,7 @@ import {
 import { ApiErrorShapeSchema } from "./schemas";
 
 // The ONE place in the Dashboard that talks HTTP to LogionOS-API. Feature
-// pages must import typed functions from `./endpoints/*`  they must NOT
+// pages must import typed functions from `./endpoints/*` Â they must NOT
 // call `fetch` directly. Everything else in this file is private.
 
 export type TokenGetter = () => Promise<string | null>;

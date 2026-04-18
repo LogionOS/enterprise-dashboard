@@ -14,7 +14,7 @@ import {
 } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { logout } from "@/lib/auth";
+import { logout } from "@/lib/legacy-auth";
 import { api } from "@/lib/api";
 import type { Notification } from "@/lib/types";
 

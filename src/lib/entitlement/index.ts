@@ -4,7 +4,7 @@ import type { ApiClientContext } from "@/lib/api/client";
 import type { Entitlement, FeatureKey, Plan } from "@/lib/api/schemas";
 
 // The single Dashboard-side consumer of `/v1/entitlement`. Feature pages ask
-// this module "does this user have feature X?" — they do NOT branch on
+// this module "does this user have feature X?" -- they do NOT branch on
 // `entitlement.plan === "team"` anywhere. This mirrors the API-side
 // `plan_entitlements.py` pattern.
 

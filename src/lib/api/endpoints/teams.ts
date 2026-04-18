@@ -15,7 +15,7 @@ export async function listAdminTeams(
   return res.items;
 }
 
-// Team settings — the API may not expose this yet in Phase 1. The function
+// Team settings -- the API may not expose this yet in Phase 1. The function
 // exists so the settings page has a typed call site; it will 404 gracefully
 // via NotFoundError until the API lands E-stream team-settings work.
 export type TeamSettingsPayload = {

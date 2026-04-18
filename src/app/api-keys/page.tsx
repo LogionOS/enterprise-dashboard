@@ -8,7 +8,7 @@ import {
 import Badge from "@/components/ui/Badge";
 import { toast } from "@/components/ui/Toast";
 import { api } from "@/lib/api";
-import { isAdmin } from "@/lib/auth";
+import { isAdmin } from "@/lib/legacy-auth";
 
 interface ApiKeyEntry {
   id: number;

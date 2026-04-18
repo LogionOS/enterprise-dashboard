@@ -6,7 +6,7 @@ import type { Entitlement } from "../schemas";
 import { useClientToken } from "./useClientToken";
 
 // Client-side SWR hook for the current user's entitlement. Feature pages call
-// `useClientEntitlement()` — they MUST NOT call `fetch('/v1/entitlement')`
+// `useClientEntitlement()` -- they MUST NOT call `fetch('/v1/entitlement')`
 // directly. Server components should use `getEntitlement()` directly with a
 // server-side token.
 

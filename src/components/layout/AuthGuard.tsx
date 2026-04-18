@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
-import { isAuthenticated } from "@/lib/auth";
+import { isAuthenticated } from "@/lib/legacy-auth";
 
 export default function AuthGuard({ children }: { children: React.ReactNode }) {
   const router = useRouter();
@@ -11,7 +11,20 @@ export default function AuthGuard({ children }: { children: React.ReactNode }) {
   const [authed, setAuthed] = useState(false);
 
   useEffect(() => {
-    if (pathname === "/login" || pathname === "/welcome") {
+    // Clerk-protected surfaces (sign-in / sign-up / Creator Risk Layer pages)
+    // are gated by `middleware.ts` and Clerk's own <SignedIn> boundary, so
+    // the legacy localStorage-based AuthGuard must not second-guess them.
+    const isClerkSurface =
+      pathname === "/" ||
+      pathname?.startsWith("/sign-in") ||
+      pathname?.startsWith("/sign-up") ||
+      pathname?.startsWith("/me") ||
+      pathname?.startsWith("/teams");
+    if (
+      pathname === "/login" ||
+      pathname === "/welcome" ||
+      isClerkSurface
+    ) {
       setChecked(true);
       setAuthed(true);
       return;
