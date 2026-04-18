@@ -1,12 +1,12 @@
 import { FeatureGatedError } from "@/lib/api/errors";
-import { getEntitlement } from "@/lib/api/endpoints/entitlement";
-import type { ApiClientContext } from "@/lib/api/client";
 import type { Entitlement, FeatureKey, Plan } from "@/lib/api/schemas";
 
-// The single Dashboard-side consumer of `/v1/entitlement`. Feature pages ask
-// this module "does this user have feature X?" -- they do NOT branch on
-// `entitlement.plan === "team"` anywhere. This mirrors the API-side
-// `plan_entitlements.py` pattern.
+// Pure, side-effect-free helpers for the entitlement contract. This module
+// is safe to import from any component (client or server). Anything that
+// actually HITS the API lives in `./server.ts`, which is gated by
+// `server-only`. This split keeps the client bundle clean -- importing
+// `planLabel` must not drag the whole API client (and Clerk) into the
+// browser.
 
 export type CapView = {
   reached: boolean;
@@ -15,8 +15,6 @@ export type CapView = {
   percent: number;
   plan: Plan;
   upgradeUrl: string | null;
-  // When cap >= 0 and usage is approaching it, we also want a "warn" signal
-  // so the UI can show a non-blocking banner before the cap is hit.
   approaching: boolean;
 };
 
@@ -87,10 +85,4 @@ export function requireFeature(
       },
     );
   }
-}
-
-export async function getEntitlementServer(
-  ctx: ApiClientContext = {},
-): Promise<Entitlement> {
-  return getEntitlement(ctx);
 }

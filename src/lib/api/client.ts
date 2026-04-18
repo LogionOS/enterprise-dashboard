@@ -9,7 +9,7 @@ import {
 import { ApiErrorShapeSchema } from "./schemas";
 
 // The ONE place in the Dashboard that talks HTTP to LogionOS-API. Feature
-// pages must import typed functions from `./endpoints/*`  they must NOT
+// pages must import typed functions from `./endpoints/*` ? they must NOT
 // call `fetch` directly. Everything else in this file is private.
 
 export type TokenGetter = () => Promise<string | null>;
@@ -31,16 +31,12 @@ export function getApiBaseUrl(): string {
   return url.replace(/\/$/, "");
 }
 
-async function defaultServerGetToken(): Promise<string | null> {
-  try {
-    // Imported lazily so the browser bundle never includes the server auth
-    // module. `@/lib/auth` only re-exports server helpers.
-    const mod = await import("@/lib/auth/server");
-    return mod.getServerToken();
-  } catch {
-    return null;
-  }
-}
+// NOTE: there is deliberately no default-token fallback here. Every caller
+// (server page, server route, client hook) explicitly passes `getToken` via
+// `ctx`. Server code composes it with `serverApiCtx()` from `./server`;
+// client code composes it with `useClientToken()`. Keeping this file free of
+// any `@/lib/auth/server` import is what keeps `node:async_hooks` out of the
+// browser bundle.
 
 function parseRetryAfter(h: string | null): number | undefined {
   if (!h) return undefined;
@@ -131,7 +127,7 @@ export async function apiFetch(
   ctx: ApiClientContext = {},
 ): Promise<Response> {
   const baseUrl = ctx.baseUrl ?? getApiBaseUrl();
-  const getToken = ctx.getToken ?? defaultServerGetToken;
+  const getToken = ctx.getToken;
   const fetchImpl = ctx.fetchImpl ?? fetch;
 
   const headers = new Headers(init.headers ?? {});
@@ -144,10 +140,12 @@ export async function apiFetch(
   }
 
   let token: string | null = null;
-  try {
-    token = await getToken();
-  } catch {
-    token = null;
+  if (getToken) {
+    try {
+      token = await getToken();
+    } catch {
+      token = null;
+    }
   }
   if (token) headers.set("authorization", `Bearer ${token}`);
 
