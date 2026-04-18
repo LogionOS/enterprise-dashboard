@@ -20,6 +20,10 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    "vitest.config.ts",
+    "vitest.setup.ts",
+    "**/*.test.ts",
+    "**/*.test.tsx",
   ]),
 ]);
 
