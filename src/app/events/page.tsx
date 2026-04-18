@@ -70,7 +70,7 @@ export default function EventsPage() {
         latency_ms: ev.latency_ms,
       },
       audit_trail: {
-        immutable_hash: ev.query_hash,
+        integrity_hash: ev.query_hash,
         decision_timestamp: ev.timestamp,
         engine_version: "2.0.0",
         pipeline: "FastCheck → RegulationMatch → AI Judge → AuditLog",
@@ -137,7 +137,7 @@ td:first-child{font-weight:600;width:200px;background:#f9fafb;color:#4b5563}
 
 <h2>Audit Trail</h2>
 <table>
-<tr><td>Immutable Hash</td><td><code>${ev.query_hash}</code></td></tr>
+<tr><td>Integrity Hash</td><td><code>${ev.query_hash}</code></td></tr>
 <tr><td>Engine Version</td><td>LogionOS v2.0</td></tr>
 <tr><td>Pipeline</td><td>FastCheck → RegulationMatch → AI Judge → AuditLog</td></tr>
 <tr><td>Retention Policy</td><td>Configurable (see DEPLOYMENT.md)</td></tr>
@@ -370,7 +370,7 @@ For audit verification, contact compliance@logionos.com
                 <InfoRow label="Engine Version" value="LogionOS v2.0" />
                 <InfoRow label="Pipeline" value="FastCheck → RegMatch → AI Judge → Audit" />
                 <InfoRow label="Retention Policy" value="Configurable (see DEPLOYMENT.md)" />
-                <InfoRow label="Immutable Hash" value={selected.query_hash.slice(0, 24) + "..."} mono />
+                <InfoRow label="Integrity Hash" value={selected.query_hash.slice(0, 24) + "..."} mono />
               </Section>
 
               {/* Export Buttons */}
@@ -408,7 +408,7 @@ For audit verification, contact compliance@logionos.com
 
               <div className="text-[10px] text-gray-600 text-center pt-2">
                 <Clock className="w-3 h-3 inline mr-1" />
-                This evidence pack is generated from immutable audit data.
+                This evidence pack is generated from tamper-evident, hash-chained audit data.
                 All hashes are computed at check time and cannot be modified.
               </div>
             </div>
