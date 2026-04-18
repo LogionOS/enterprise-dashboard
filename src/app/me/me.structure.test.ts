@@ -15,6 +15,7 @@ const REQUIRED_FILES = [
   "billing/page.tsx",
   "usage/page.tsx",
   "receipts/page.tsx",
+  "extension/page.tsx",
 ];
 
 describe("/me basic-tier surfaces", () => {
@@ -40,7 +41,13 @@ describe("/me basic-tier surfaces", () => {
   });
 
   it("uses the shared DashboardShell for each feature page", () => {
-    for (const f of ["page.tsx", "billing/page.tsx", "usage/page.tsx", "receipts/page.tsx"]) {
+    for (const f of [
+      "page.tsx",
+      "billing/page.tsx",
+      "usage/page.tsx",
+      "receipts/page.tsx",
+      "extension/page.tsx",
+    ]) {
       const src = readFileSync(join(BASE, f), "utf8");
       expect(src, `${f} must render DashboardShell`).toMatch(/DashboardShell/);
     }
