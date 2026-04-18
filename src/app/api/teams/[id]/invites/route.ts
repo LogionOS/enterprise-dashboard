@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { requireServerAuth, getServerToken } from "@/lib/auth";
+import { requireServerAuth } from "@/lib/auth";
 import { apiFetch } from "@/lib/api/client";
+import { serverApiCtx, withExtraHeaders } from "@/lib/api/server";
 import { AuthError, ApiError } from "@/lib/api/errors";
 
 const BodySchema = z.object({
@@ -47,10 +48,7 @@ export async function POST(
         method: "POST",
         body: JSON.stringify({ team_id: teamId, email, role }),
       },
-      {
-        getToken: () => getServerToken(),
-        extraHeaders: { "X-Admin-Key": adminKey },
-      },
+      withExtraHeaders(serverApiCtx(), { "X-Admin-Key": adminKey }),
     );
 
     return NextResponse.json({ ok: true });

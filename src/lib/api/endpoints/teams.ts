@@ -1,5 +1,10 @@
 import { fetchJson, type ApiClientContext } from "../client";
-import { TeamAdminRowSchema, type TeamAdminRow } from "../schemas";
+import {
+  TeamAdminRowSchema,
+  TeamMemberSchema,
+  type TeamAdminRow,
+  type TeamMember,
+} from "../schemas";
 import { z } from "zod";
 
 export async function listAdminTeams(
@@ -8,6 +13,20 @@ export async function listAdminTeams(
   const schema = z.object({ items: z.array(TeamAdminRowSchema) });
   const res = await fetchJson(
     "/v1/admin/teams",
+    schema,
+    { method: "GET" },
+    ctx,
+  );
+  return res.items;
+}
+
+export async function listTeamMembers(
+  teamId: string,
+  ctx: ApiClientContext = {},
+): Promise<TeamMember[]> {
+  const schema = z.object({ items: z.array(TeamMemberSchema) });
+  const res = await fetchJson(
+    `/v1/admin/teams/${encodeURIComponent(teamId)}/members`,
     schema,
     { method: "GET" },
     ctx,

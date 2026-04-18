@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
-import { requireServerAuth, getServerToken } from "@/lib/auth";
+import { requireServerAuth } from "@/lib/auth";
 import { apiFetch } from "@/lib/api/client";
+import { serverApiCtx, withExtraHeaders } from "@/lib/api/server";
 import { AuthError, ApiError } from "@/lib/api/errors";
 
 export async function DELETE(
@@ -20,10 +21,7 @@ export async function DELETE(
     await apiFetch(
       `/v1/admin/team-members/${encodeURIComponent(memberId)}?team_id=${encodeURIComponent(teamId)}`,
       { method: "DELETE" },
-      {
-        getToken: () => getServerToken(),
-        extraHeaders: { "X-Admin-Key": adminKey },
-      },
+      withExtraHeaders(serverApiCtx(), { "X-Admin-Key": adminKey }),
     );
     return NextResponse.json({ ok: true });
   } catch (err: unknown) {

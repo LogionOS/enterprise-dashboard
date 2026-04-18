@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { requireServerAuth, getServerToken } from "@/lib/auth";
+import { requireServerAuth } from "@/lib/auth";
 import { createBillingPortalSession } from "@/lib/api/endpoints/billing";
+import { serverApiCtx } from "@/lib/api/server";
 import { AuthError, ApiError } from "@/lib/api/errors";
 
 const BodySchema = z.object({
@@ -30,7 +31,7 @@ export async function POST(req: Request) {
       parsed.data.returnUrl || `${base.replace(/\/$/, "")}/me/billing`;
     const out = await createBillingPortalSession(
       { returnUrl, teamId: parsed.data.teamId },
-      { getToken: () => getServerToken() },
+      serverApiCtx(),
     );
     return NextResponse.json({ url: out.url });
   } catch (err: unknown) {
